@@ -11,12 +11,10 @@ from io import BytesIO
 
 from itertools import permutations
 
-app_id = '387279'
-app_hash = '4003b48448432acc32a9052af27d4a58'
-tmdb_key = 'b729fb42b650d53389fb933b99f4b072'
-smiaoid = 604039549
-nfchat_id = 1282810872
-spotify_headers = {'Authorization': 'Bearer BQC54C7KIQTzoMrUyR-t4a23mG4cEin3LKe3sTlR42cTmhDbEvUg_MbTTgkOrX7ihRWkoEu9e1Xt0ZAZ1lU-WrkDK3AU7I2Zv7L9E5pqkDjBAsVMesRbDesCNqZn8WrCliXbkWP2tHPMa79FTDRPabMlt9PInoQ'}
+app_id = int(os.getenv("APP_ID"))
+app_hash = os.getenv("APP_HASH")
+tmdb_key = os.getenv("TMDB_KEY")
+deepl_key = os.getenv("DEEPL_KEY")
 
 song_list = []
 for item in open('songlist'):
@@ -30,27 +28,12 @@ def am_search(query):
     url = 'https://itunes.apple.com/us/search?term='+requests.utils.quote(query)+'&entity=song&limit=1'
     return url
 
-def get_rarbg():
-    guid = open('/root/userbot/guid', "r").read()
-    feed = feedparser.parse('https://rarbg.to/rssdd.php?category=41')
-    item_list = []
-    for post in feed.entries:
-        if post.guid == guid:
-            break
-        if re.search('1080p.*WEB', post.title):
-            title = re.sub('\.|\[rartv\]', ' ', post.title)
-            item = '**'+title+'**\n\n`'+post.link+'`'
-            item_list.append(item)
-    f = open('/root/userbot/guid', "w")
-    f.write(feed.entries[0].guid)
-    return item_list
-
 bot = TelegramClient('bot', app_id, app_hash)
 bot.start()
 
 def get_translation(text):
     url = 'https://api-free.deepl.com/v2/translate'
-    payload = {'auth_key': '7e0538bd-e62d-fa5f-af65-3383d493f747:fx', 'text': text, 'target_lang': 'ZH'}
+    payload = {'auth_key': deepl_key, 'text': text, 'target_lang': 'ZH'}
     result = requests.post(url, data=payload).json()['translations'][0]['text']
     return result
 
@@ -96,25 +79,6 @@ async def withdraw_master(event):
     msg = event.message
     msgtext = event.message.text
     await bot.forward_messages(1359252145, msg)
-
-@bot.on(events.NewMessage(chats=1429932430))
-async def backup(event):
-    msg = event.message
-    msgtext = event.message.text
-    await bot.forward_messages(1359252145, msg)
-
-@bot.on(events.NewMessage(from_users=415756084, pattern='/q'))
-async def stfu(event):
-    async with bot.conversation(event.message.chat_id, exclusive=False, total_timeout=5) as conv:
-        question = await conv.wait_event(events.NewMessage(from_users=604039549))
-        msg = question.message.text
-        ipa = re.search(r'/q (\[.*\])', msg).group(1)
-        for line in open('dic.txt'):
-            if re.search(re.escape(ipa), line):
-                result = re.search(r'(.*?)\s', line).group(1)
-                break
-        await bot.send_message(604039549, '/q '+result)
-
 '''
 @bot.on(events.NewMessage(from_users=1058117864))
 async def shut_up(event):
@@ -172,13 +136,7 @@ async def banme(event):
         await bot.send_message(event.message.chat_id, '/banme')
 
 
-@bot.on(events.NewMessage(from_users=smiaoid, pattern=r'.*#48'))
-async def sign_in(event):
-    print(event.chat_id)
-    async with bot.conversation(event.chat_id) as conv:
-        if await conv.wait_event(events.NewMessage(pattern='/q'), timeout=300):
-            await bot.send_message(smiaoid, '/q')    
-
+'''
 @bot.on(events.NewMessage(pattern=r'^猜歌$'))
 async def send_song(event):
     song = random.choice(song_list)
@@ -206,5 +164,5 @@ async def send_song(event):
     except Exception as e:
         print(e)
         await bot.edit_message(question, '答题超时，答案：'+song)
-
+'''
 bot.run_until_disconnected()
