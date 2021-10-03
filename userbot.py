@@ -86,7 +86,7 @@ def sticker(client: "Client", message: "types.Message"):
 
 @bot.on_message(filters.user([1046900703, 1058117864]))
 def withdraw_master(client: "Client", message: "types.Message"):
-    bot.forward_messages(1359252145, message.chat.id, message.message_id)
+    bot.forward_messages(-1001359252145, message.chat.id, message.message_id)
 
 @bot.on_message(filters.reply & filters.user(604039549))
 def auto_sign_in(client: "Client", message: "types.Message"):
