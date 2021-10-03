@@ -18,20 +18,16 @@ app_hash = os.getenv("APP_HASH")
 tmdb_key = os.getenv("TMDB_KEY")
 deepl_key = os.getenv("DEEPL_KEY")
 
-song_list = []
-for item in open('songlist'):
-    song_list.append(item.strip("\n"))
-
 titlelist = []
 for item in open('titlelist'):
     titlelist.append(item.strip("\n"))
-
+'''
 music_list = []
 for root, dirs, files in os.walk("music"):
      for file in files:
              if file.endswith(".raw"):
                      music_list.append(os.path.join(root, file))
-
+'''
 def am_search(query):
     url = 'https://itunes.apple.com/us/search?term='+requests.utils.quote(query)+'&entity=song&limit=1'
     return url
@@ -93,11 +89,13 @@ def withdraw_master(client: "Client", message: "types.Message"):
     bot.forward_messages(1359252145, message.chat.id, message.message_id)
 
 @bot.on_message(filters.reply & filters.user(604039549))
-def auto_qqq(client: "Client", message: "types.Message"):
+def auto_sign_in(client: "Client", message: "types.Message"):
     if not message.reply_to_message.from_user.is_self:
         return
     msg = message.text
     key = re.search(r'/q (.*)', msg).group(1)
+    if len(key) > 6:
+        return
     keylist = []
     for i in permutations(key):
         keylist.append(''.join(i))
