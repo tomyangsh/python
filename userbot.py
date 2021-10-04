@@ -2,16 +2,18 @@ import os, asyncio, re, time, requests, random, subprocess, feedparser, aiocron
 
 from pyrogram import Client, filters
 from pyrogram.types import ChatPermissions
+from pyrogram.raw import functions, types
+from pyrogram.raw.functions.messages import GetFullChat
 
 from pytgcalls import GroupCallFactory
-
-from FastTelethon.FastTelethon import download_file, upload_file
 
 from datetime import datetime, timedelta
 from time import time
 from io import BytesIO
 
 from itertools import permutations
+
+from random import randint, sample
 
 app_id = int(os.getenv("APP_ID"))
 app_hash = os.getenv("APP_HASH")
@@ -45,15 +47,23 @@ def get_translation(text):
 async def join_group_call(client, m: Message):
     group_call =
 
-group_call = GroupCallFactory(bot).get_file_group_call(music_list[random.randint(0,len(music_list)-1)], play_on_repeat=False)
+group_call = GroupCallFactory(bot).get_file_group_call()
 
 @group_call.on_playout_ended
 async def switch_song(_, source):
     group_call.input_filename = music_list[random.randint(0,len(music_list)-1)]
 
 @bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("live"))
-async def live_music(_, message):
+async def live_music(client, message):
+    await bot.send(functions.phone.CreateGroupCall(peer=(await bot.resolve_peer(message.chat.id)), random_id=688968644))
+    await asyncio.sleep(1)
     await group_call.start(message.chat.id)
+
+@bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("stop"))
+async def live_music(_, message):
+    await group_call.stop_playout()
+    the_call = 688968644
+    await bot.send(functions.phone.DiscardGroupCall(call=the_call))
 '''
 @bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("ban"))
 def ban_user(client: "Client", message: "types.Message"):
@@ -107,6 +117,27 @@ def repeat_msg(client: "Client", message: "types.Message"):
     source_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
     bot.forward_messages(message.chat.id, message.chat.id, source_msg.message_id)
     bot.delete_messages(message.chat.id, message.message_id)
+
+@bot.on_message(filters.outgoing & filters.command('grabimg'))
+def grab_img(client, message: types.Message):
+    bot.delete_messages(message.chat.id, message.message_id)
+    url = re.sub(r'/grabimg\s*', '', message.text)
+    url_root = re.match('(https?://.*?)/', url).groups()[0]
+    page = requests.get(url).text
+    img_list = re.findall('src="(.*?jpg)', page)
+    for i in img_list:
+        if not re.match('http', i):
+            i = url_root+i
+        img = requests.get(i).content
+        if len(img) < 102400:
+            continue
+        bot.send_photo(message.chat.id, i)
+
+@bot.on_message(filters.outgoing & filters.command('sendgif'))
+def send_gif(client, message: types.Message):
+    bot.delete_messages(message.chat.id, message.message_id)
+    url = re.sub(r'/sendgif\s*', '', message.text)
+    bot.send_animation(message.chat.id, url, unsave=True)
 
 bot.run()
 
