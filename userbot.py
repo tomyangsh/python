@@ -100,17 +100,19 @@ def withdraw_master(client: "Client", message: "types.Message"):
 
 @bot.on_message(filters.reply & filters.user(604039549))
 def auto_sign_in(client: "Client", message: "types.Message"):
-    if not message.reply_to_message.from_user.is_self:
-        return
     msg = message.text
+    if not re.search(r'新的口令\(5.\)', msg):
+        return
     key = re.search(r'/q (.*)', msg).group(1)
     if len(key) > 6:
         return
     keylist = []
     for i in permutations(key):
         keylist.append(''.join(i))
-    result = next(iter(set(keylist).intersection(titlelist)))
-    bot.send_message(message.chat.id, '/q '+result)
+    anwser_list = set(keylist).intersection(titlelist)
+    if anwser_list:
+        result = next(iter(anwser_list))
+        bot.send_message(message.chat.id, '/q '+result)
 
 @bot.on_message(filters.outgoing & filters.regex(r're$'))
 def repeat_msg(client: "Client", message: "types.Message"):
@@ -138,6 +140,16 @@ def send_gif(client, message: types.Message):
     bot.delete_messages(message.chat.id, message.message_id)
     url = re.sub(r'/sendgif\s*', '', message.text)
     bot.send_animation(message.chat.id, url, unsave=True)
+
+@bot.on_message(filters.outgoing & filters.command('sendvid'))
+def send_gif(client, message: types.Message):
+    bot.delete_messages(message.chat.id, message.message_id)
+    url = re.sub(r'/sendvid\s*', '', message.text)
+    bot.send_video(message.chat.id, url)
+
+@bot.on_message(filters.user(1890475209) & filters.chat(-522044327))
+def send_ytdl(client, message: types.Message):
+    bot.forward_messages(-522044327, -522044327, message.message_id)
 
 bot.run()
 
