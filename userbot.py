@@ -98,6 +98,16 @@ def sticker(client: "Client", message: "types.Message"):
 def withdraw_master(client: "Client", message: "types.Message"):
     bot.forward_messages(-1001359252145, message.chat.id, message.message_id)
 
+@bot.on_message(filters.user(1381329404))
+def reply_inzer(client: "Client", message: "types.Message"):
+    msg = message.text
+    if not re.match(r'\d\dw$', msg):
+        return
+    time.sleep(3)
+    bot.send_message(message.chat.id, 'tomyang001', reply_to_message_id=message.message_id)
+    time.sleep(3)
+    bot.send_message(message.chat.id, '谢谢')
+
 @bot.on_message(filters.reply & filters.user(604039549))
 def auto_sign_in(client: "Client", message: "types.Message"):
     msg = message.text
