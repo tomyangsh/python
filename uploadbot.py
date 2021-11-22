@@ -17,16 +17,15 @@ def get_metadata(video_path):
 
 
 def get_thumbnail(video_path):
+    thumbnail = os.path.dirname(__file__)+'/thumbnail.png'
     ff =    (
             ffmpeg
-            .input(video_path, ss='2:00')
-            .output(os.path.dirname(__file__)+'/thumbnail.png', vframes=1)
+            .input(video_path, ss='1')
+            .output(thumbnail, vframes=1)
             .overwrite_output()
             .run()
         )
-    if ff == (None, None):
-        return None
-    return os.path.dirname(__file__)+'/thumbnail.png'
+    return thumbnail
 
 
 with Client("upload") as app:
@@ -36,5 +35,6 @@ with Client("upload") as app:
     except:
         caption = ''
     meta = get_metadata(video_path)
-    thumbnail = get_thumbnail(video_path) or os.path.dirname(__file__)+'/black.png'
+    thumbnail = get_thumbnail(video_path)
     app.send_video("me", video_path, caption=caption, thumb=thumbnail, **meta)
+    os.unlink(thumbnail)
