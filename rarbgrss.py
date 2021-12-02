@@ -1,6 +1,9 @@
 import feedparser, re, requests, os
 
-guid = open('/opt/dev/guid', "r").read()
+try:
+    guid = open(os.path.dirname(__file__)+'/lastfetch', "r").read()
+except IOError:
+    guid = ''
 
 feed = feedparser.parse('https://rarbg.to/rssdd.php?category=4')
 
@@ -14,4 +17,4 @@ for post in feed.entries:
         r = requests.post('http://localhost:6800/jsonrpc', json=payload)
         print(r.text)
 
-open('/opt/dev/guid', "w").write(feed.entries[0].guid)
+open(os.path.dirname(__file__)+'/lastfetch', "w").write(feed.entries[0].guid)
