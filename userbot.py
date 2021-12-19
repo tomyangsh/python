@@ -1,11 +1,9 @@
-import os, asyncio, re, time, requests, random, subprocess, feedparser, aiocron
+import os, re, time, requests, random
 
 from pyrogram import Client, filters
 from pyrogram.types import ChatPermissions
 from pyrogram.raw import functions, types
 from pyrogram.raw.functions.messages import GetFullChat
-
-from pytgcalls import GroupCallFactory
 
 from datetime import datetime, timedelta
 from time import time
