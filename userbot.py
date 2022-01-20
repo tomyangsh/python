@@ -88,9 +88,13 @@ def auto_lottery(client: "Client", message: "types.Message"):
     bot.send_message(message.chat.id, key_word)
 '''
 @bot.on_message(filters.sticker & filters.user([634261570, 681532273]))
-def sticker(client: "Client", message: "types.Message"):
-    sticker_id = message.sticker.file_id
-    bot.send_sticker(message.chat.id, sticker_id, reply_to_message_id=message.message_id)
+def reaction(client: "Client", message: "types.Message"):
+    #sticker_id = message.sticker.file_id
+    bot.send_reaction(message.chat.id, message.message_id, "💩")
+
+@bot.on_message(filters.user(432787230) & (filters.photo | filters.video) & filters.chat("debiancn_nsfw_offtopic"))
+def reaction2(client: "Client", message: "types.Message"):
+    bot.send_reaction(message.chat.id, message.message_id, "🤮")
 
 @bot.on_message(filters.user([1046900703, 1058117864]))
 def withdraw_master(client: "Client", message: "types.Message"):
