@@ -1,6 +1,8 @@
 import sys
 import ffmpeg
 import os
+import requests
+import re
 
 from pyrogram import Client
 
@@ -30,8 +32,13 @@ def get_thumbnail(video_path):
 
 with Client("upload") as app:
     video_path = sys.argv[1]
+    video_name = os.path.basename(video_path)
     try:
-        caption = sys.argv[2]
+        ep_no = re.search('\w\d\d\w\d\d', video_name).group()
+        name_eng = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
+        name_chi = re.sub('：', '_', requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=xxx&query='+name_eng).json()['results'][0].get('name'))
+        caption = '#'+name_chi+' '+name_eng+' '+ep_no
+        print(caption)
     except:
         caption = ''
     meta = get_metadata(video_path)
