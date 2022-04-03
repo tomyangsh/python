@@ -35,9 +35,11 @@ with Client("upload") as app:
     video_name = os.path.basename(video_path)
     try:
         ep_no = re.search('\w\d\d\w\d\d', video_name).group()
-        name_eng = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
-        name_chi = re.sub('：', '_', requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=xxx&query='+name_eng).json()['results'][0].get('name'))
-        caption = '#'+name_chi+' '+name_eng+' '+ep_no
+        query = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
+        res = requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=xxx&query='+query).json()['results'][0]
+        name_chi = re.sub('：', '_', res.get('name'))
+        name_org = re.sub('：', '_', res.get('original_name'))
+        caption = '#'+name_chi+' '+name_org+' '+ep_no
         print(caption)
     except:
         caption = ''
