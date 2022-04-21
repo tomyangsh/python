@@ -29,6 +29,9 @@ def get_thumbnail(video_path):
         )
     return thumbnail
 
+def progress(current, total):
+    sys.stdout.write(f"\r{current * 100 / total:.1f}%")
+    sys.stdout.flush()
 
 with Client("upload") as app:
     video_path = sys.argv[1]
@@ -36,7 +39,7 @@ with Client("upload") as app:
     try:
         ep_no = re.search('\w\d\d\w\d\d', video_name).group()
         query = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
-        res = requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=xxx&query='+query).json()['results'][0]
+        res = requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=&query='+query).json()['results'][0]
         name_chi = re.sub('：', '_', res.get('name'))
         name_org = re.sub('：', '_', res.get('original_name'))
         caption = '#'+name_chi+' '+name_org+' '+ep_no
@@ -45,5 +48,5 @@ with Client("upload") as app:
         caption = ''
     meta = get_metadata(video_path)
     thumbnail = get_thumbnail(video_path)
-    app.send_video("me", video_path, caption=caption, thumb=thumbnail, **meta)
+    app.send_video("me", video_path, caption=caption, thumb=thumbnail, **meta, progress=progress)
     os.unlink(thumbnail)
