@@ -1,26 +1,23 @@
-import os, re, time, requests, random
+import os, re, time, requests, random, aiocron, psycopg2
 
 from pyrogram import Client, filters
 from pyrogram.types import ChatPermissions
 from pyrogram.raw import functions, types
 from pyrogram.raw.functions.messages import GetFullChat
 
-from datetime import datetime, timedelta
-from time import time
 from io import BytesIO
 
 from itertools import permutations
 
 from random import randint, sample
 
+from time import time as now
+
 app_id = int(os.getenv("APP_ID"))
 app_hash = os.getenv("APP_HASH")
 tmdb_key = os.getenv("TMDB_KEY")
 deepl_key = os.getenv("DEEPL_KEY")
 
-titlelist = []
-for item in open('titlelist'):
-    titlelist.append(item.strip("\n"))
 '''
 music_list = []
 for root, dirs, files in os.walk("music"):
@@ -63,23 +60,65 @@ async def live_music(_, message):
     the_call = 688968644
     await bot.send(functions.phone.DiscardGroupCall(call=the_call))
 '''
+@aiocron.crontab('0 14 * * *')
+async def clean():
+    msg_list = bot.search_messages(-1001345466016, query="回答正确", from_user=1890475209)
+    async for message in msg_list:
+        await bot.delete_messages(-1001345466016, message.message_id)
+    msg_list = bot.search_messages(-1001345466016, from_user=1788219924)
+    async for message in msg_list:
+        await bot.delete_messages(-1001345466016, message.message_id)
+
+@aiocron.crontab('0 * * * *')
+async def kuo():
+    await bot.send_message(-1001222510019, '/kuo')
+    time.sleep(3)
+    await bot.send_message(-1001310480238, '/kuo')
+
+@aiocron.crontab('58 19 * * *')
+async def suo():
+    await bot.send_message(-1001222510019, '/suo')
+
+@bot.on_message(filters.command("ans") & filters.outgoing)
+def get_uid(client: "Client", message: "types.Message"):
+    ori_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
+    list = ori_msg.reply_markup.inline_keyboard
+    for i in list:
+        for a in i:
+            if a.callback_data != "False":
+                try:
+                    bot.request_callback_answer(message.chat.id, ori_msg.message_id, a.callback_data, timeout=1)
+                except:
+                    return
+
+@bot.on_message(filters.command("id") & filters.outgoing)
+def get_uid(client: "Client", message: "types.Message"):
+    uid = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id).from_user.id
+    bot.edit_message_text(message.chat.id, message.message_id, '`'+str(uid)+'`')
+
+conn = psycopg2.connect("dbname=tmdb user=root")
+cur = conn.cursor()
+
 @bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("ban"))
 def ban_user(client: "Client", message: "types.Message"):
     source_id = message.from_user.id
     if bot.get_chat_member(message.chat.id, source_id).status == "member":
-        bot.restrict_chat_member(message.chat.id, source_id, ChatPermissions(), int(time() + 300))
         return
     msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
     target_id = msg.from_user.id
     if bot.get_chat_member(message.chat.id, target_id).status == "member":
-        bot.restrict_chat_member(message.chat.id, target_id, ChatPermissions(), int(time() + 300))
-
+        bot.restrict_chat_member(message.chat.id, target_id, ChatPermissions(), int(now() + 300))
 
 @bot.on_message(filters.outgoing & filters.command("trans"))
 def translate(client: "Client", message: "types.Message"):
     msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
     result = get_translation(msg.text or msg.caption)
     bot.edit_message_text(message.chat.id, message.message_id, result)
+'''
+@bot.on_message(filters.user(604039549) & filters.regex(r'站点扩容进度: 0.999999999999999'))
+def suo(client: "Client", message: "types.Message"):
+    bot.send_message(-1001222510019, '/suo')
+'''
 '''
 @bot.on_message(from_users=728062910, pattern=r'.*\n.*\n.*\n\n群内发送关键词'))
 def auto_lottery(client: "Client", message: "types.Message"):
@@ -92,13 +131,18 @@ def reaction(client: "Client", message: "types.Message"):
     #sticker_id = message.sticker.file_id
     bot.send_reaction(message.chat.id, message.message_id, "💩")
 
-@bot.on_message(filters.user(432787230) & (filters.photo | filters.video) & filters.chat("debiancn_nsfw_offtopic"))
+@bot.on_message(filters.regex(r'^/suo'))
 def reaction2(client: "Client", message: "types.Message"):
-    bot.send_reaction(message.chat.id, message.message_id, "🤮")
+    bot.send_reaction(message.chat.id, message.message_id, "💩")
 
 @bot.on_message(filters.user([1046900703, 1058117864]))
 def withdraw_master(client: "Client", message: "types.Message"):
     bot.forward_messages(-1001359252145, message.chat.id, message.message_id)
+'''
+@bot.on_message(filters.user(5298809748))
+def mxz185(client: "Client", message: "types.Message"):
+    bot.send_message(message.chat.id, '小M憋开挂了')
+
 
 @bot.on_message(filters.user(1381329404))
 def reply_inzer(client: "Client", message: "types.Message"):
@@ -125,9 +169,9 @@ def auto_sign_in(client: "Client", message: "types.Message"):
     if anwser_list:
         result = next(iter(anwser_list))
         bot.send_message(message.chat.id, '/q '+result)
-
-@bot.on_message(filters.outgoing & filters.regex(r're$'))
-def repeat_msg(client: "Client", message: "types.Message"):
+'''
+@bot.on_message(filters.outgoing & filters.regex(r'^re$'))
+def repeat_msg(client, message):
     source_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
     bot.forward_messages(message.chat.id, message.chat.id, source_msg.message_id)
     bot.delete_messages(message.chat.id, message.message_id)
