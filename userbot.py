@@ -1,4 +1,4 @@
-import os, re, time, requests, random, aiocron, psycopg2
+import os, re, time, requests, random, asyncio, aiocron, psycopg2
 
 from pyrogram import Client, filters
 from pyrogram.types import ChatPermissions
@@ -13,9 +13,6 @@ from random import randint, sample
 
 from time import time as now
 
-app_id = int(os.getenv("APP_ID"))
-app_hash = os.getenv("APP_HASH")
-tmdb_key = os.getenv("TMDB_KEY")
 deepl_key = os.getenv("DEEPL_KEY")
 
 '''
@@ -29,7 +26,7 @@ def am_search(query):
     url = 'https://itunes.apple.com/us/search?term='+requests.utils.quote(query)+'&entity=song&limit=1'
     return url
 
-bot = Client('userbot', app_id, app_hash)
+bot = Client('userbot')
 
 def get_translation(text):
     url = 'https://api-free.deepl.com/v2/translate'
@@ -64,10 +61,10 @@ async def live_music(_, message):
 async def clean():
     msg_list = bot.search_messages(-1001345466016, query="回答正确", from_user=1890475209)
     async for message in msg_list:
-        await bot.delete_messages(-1001345466016, message.message_id)
+        await bot.delete_messages(-1001345466016, message.id)
     msg_list = bot.search_messages(-1001345466016, from_user=1788219924)
     async for message in msg_list:
-        await bot.delete_messages(-1001345466016, message.message_id)
+        await bot.delete_messages(-1001345466016, message.id)
 
 @aiocron.crontab('0 * * * *')
 async def kuo():
@@ -79,22 +76,35 @@ async def kuo():
 async def suo():
     await bot.send_message(-1001222510019, '/suo')
 
-@bot.on_message(filters.command("ans") & filters.outgoing)
-def get_uid(client: "Client", message: "types.Message"):
-    ori_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
-    list = ori_msg.reply_markup.inline_keyboard
+@bot.on_message(filters.chat(-1001434021107) & filters.video)
+async def nfnf_auto_forward(client, message):
+    file_id = message.video.file_id
+    caption = message.caption or ''
+    await bot.send_video(-1001345466016, file_id, caption=caption)
+
+@bot.on_message(filters.chat("flower2048") & filters.new_chat_members)
+async def welcome(client, message):
+    await message.reply_text("欢迎新王晶")
+
+@bot.on_message(filters.user(1890475209) & filters.regex("这部影片的标题是:"))
+def auto_answer(client: "Client", message: "types.Message"):
+    time.sleep(60)
+    msg = bot.get_messages(message.chat.id, message.id)
+    if not msg.reply_markup:
+        return
+    list = msg.reply_markup.inline_keyboard
     for i in list:
         for a in i:
             if a.callback_data != "False":
                 try:
-                    bot.request_callback_answer(message.chat.id, ori_msg.message_id, a.callback_data, timeout=1)
+                    bot.request_callback_answer(message.chat.id, msg.id, a.callback_data, timeout=1)
                 except:
                     return
 
 @bot.on_message(filters.command("id") & filters.outgoing)
 def get_uid(client: "Client", message: "types.Message"):
-    uid = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id).from_user.id
-    bot.edit_message_text(message.chat.id, message.message_id, '`'+str(uid)+'`')
+    uid = bot.get_messages(message.chat.id, reply_to_message_ids=message.id).from_user.id
+    bot.edit_message_text(message.chat.id, message.id, '`'+str(uid)+'`')
 
 conn = psycopg2.connect("dbname=tmdb user=root")
 cur = conn.cursor()
@@ -104,16 +114,16 @@ def ban_user(client: "Client", message: "types.Message"):
     source_id = message.from_user.id
     if bot.get_chat_member(message.chat.id, source_id).status == "member":
         return
-    msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
+    msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
     target_id = msg.from_user.id
     if bot.get_chat_member(message.chat.id, target_id).status == "member":
         bot.restrict_chat_member(message.chat.id, target_id, ChatPermissions(), int(now() + 300))
 
 @bot.on_message(filters.outgoing & filters.command("trans"))
 def translate(client: "Client", message: "types.Message"):
-    msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
+    msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
     result = get_translation(msg.text or msg.caption)
-    bot.edit_message_text(message.chat.id, message.message_id, result)
+    bot.edit_message_text(message.chat.id, message.id, result)
 '''
 @bot.on_message(filters.user(604039549) & filters.regex(r'站点扩容进度: 0.999999999999999'))
 def suo(client: "Client", message: "types.Message"):
@@ -129,15 +139,15 @@ def auto_lottery(client: "Client", message: "types.Message"):
 @bot.on_message(filters.sticker & filters.user([634261570, 681532273]))
 def reaction(client: "Client", message: "types.Message"):
     #sticker_id = message.sticker.file_id
-    bot.send_reaction(message.chat.id, message.message_id, "💩")
+    bot.send_reaction(message.chat.id, message.id, "💩")
 
 @bot.on_message(filters.regex(r'^/suo'))
 def reaction2(client: "Client", message: "types.Message"):
-    bot.send_reaction(message.chat.id, message.message_id, "💩")
+    bot.send_reaction(message.chat.id, message.id, "💩")
 
 @bot.on_message(filters.user([1046900703, 1058117864]))
 def withdraw_master(client: "Client", message: "types.Message"):
-    bot.forward_messages(-1001359252145, message.chat.id, message.message_id)
+    bot.forward_messages(-1001359252145, message.chat.id, message.id)
 '''
 @bot.on_message(filters.user(5298809748))
 def mxz185(client: "Client", message: "types.Message"):
@@ -150,7 +160,7 @@ def reply_inzer(client: "Client", message: "types.Message"):
     if not re.match(r'\d\dw$', msg):
         return
     time.sleep(3)
-    bot.send_message(message.chat.id, 'tomyang001', reply_to_message_id=message.message_id)
+    bot.send_message(message.chat.id, 'tomyang001', reply_to_message_id=message.id)
     time.sleep(3)
     bot.send_message(message.chat.id, '谢谢')
 
@@ -172,13 +182,13 @@ def auto_sign_in(client: "Client", message: "types.Message"):
 '''
 @bot.on_message(filters.outgoing & filters.regex(r'^re$'))
 def repeat_msg(client, message):
-    source_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.message_id)
-    bot.forward_messages(message.chat.id, message.chat.id, source_msg.message_id)
-    bot.delete_messages(message.chat.id, message.message_id)
+    source_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
+    bot.forward_messages(message.chat.id, message.chat.id, source_msg.id)
+    bot.delete_messages(message.chat.id, message.id)
 
 @bot.on_message(filters.outgoing & filters.command('grabimg'))
 def grab_img(client, message: types.Message):
-    bot.delete_messages(message.chat.id, message.message_id)
+    bot.delete_messages(message.chat.id, message.id)
     url = re.sub(r'/grabimg\s*', '', message.text)
     url_root = re.match('(https?://.*?)/', url).groups()[0]
     page = requests.get(url).text
@@ -193,19 +203,24 @@ def grab_img(client, message: types.Message):
 
 @bot.on_message(filters.outgoing & filters.command('sendgif'))
 def send_gif(client, message: types.Message):
-    bot.delete_messages(message.chat.id, message.message_id)
+    bot.delete_messages(message.chat.id, message.id)
     url = re.sub(r'/sendgif\s*', '', message.text)
     bot.send_animation(message.chat.id, url, unsave=True)
 
 @bot.on_message(filters.outgoing & filters.command('sendvid'))
 def send_gif(client, message: types.Message):
-    bot.delete_messages(message.chat.id, message.message_id)
+    bot.delete_messages(message.chat.id, message.id)
     url = re.sub(r'/sendvid\s*', '', message.text)
     bot.send_video(message.chat.id, url)
 
 @bot.on_message(filters.user(1890475209) & filters.chat(-522044327))
 def send_ytdl(client, message: types.Message):
-    bot.forward_messages(-522044327, -522044327, message.message_id)
+    bot.forward_messages(-522044327, -522044327, message.id)
+
+@bot.on_callback_query()
+def record_name(client, callback_query):
+    bot.send_message("me", callback_query.from_user.first_name)
+    bot.answer_callback_query(callback_query.id, text='已记录')
 
 bot.run()
 
