@@ -1,6 +1,6 @@
 import os, re, time, requests, random, asyncio, aiocron, psycopg2
 
-from pyrogram import Client, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import ChatPermissions
 from pyrogram.raw import functions, types
 from pyrogram.raw.functions.messages import GetFullChat
@@ -11,7 +11,7 @@ from itertools import permutations
 
 from random import randint, sample
 
-from time import time as now
+from datetime import datetime, timedelta
 
 deepl_key = os.getenv("DEEPL_KEY")
 
@@ -66,15 +66,13 @@ async def clean():
     async for message in msg_list:
         await bot.delete_messages(-1001345466016, message.id)
 
-@aiocron.crontab('0 * * * *')
-async def kuo():
-    await bot.send_message(-1001222510019, '/kuo')
-    time.sleep(3)
-    await bot.send_message(-1001310480238, '/kuo')
-
 @aiocron.crontab('58 19 * * *')
 async def suo():
     await bot.send_message(-1001222510019, '/suo')
+
+@bot.on_message(filters.chat(-1001222510019) & filters.regex("站点扩容进度: 0.999999999999999889"))
+async def kuo(client, message):
+    await bot.send_message(-1001222510019, '/kuo')
 
 @bot.on_message(filters.chat(-1001434021107) & filters.video)
 async def nfnf_auto_forward(client, message):
@@ -109,15 +107,17 @@ def get_uid(client: "Client", message: "types.Message"):
 conn = psycopg2.connect("dbname=tmdb user=root")
 cur = conn.cursor()
 
-@bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("ban"))
-def ban_user(client: "Client", message: "types.Message"):
+@bot.on_message(filters.chat([-1001345466016, -1001310480238]) & filters.command("ban"))
+async def ban_user(client: "Client", message: "types.Message"):
     source_id = message.from_user.id
-    if bot.get_chat_member(message.chat.id, source_id).status == "member":
+    source_mum = await bot.get_chat_member(message.chat.id, source_id)
+    if source_mum.status == enums.ChatMemberStatus.MEMBER:
         return
-    msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
+    msg = await bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
     target_id = msg.from_user.id
-    if bot.get_chat_member(message.chat.id, target_id).status == "member":
-        bot.restrict_chat_member(message.chat.id, target_id, ChatPermissions(), int(now() + 300))
+    target_mum = await bot.get_chat_member(message.chat.id, target_id)
+    if target_mum.status == enums.ChatMemberStatus.MEMBER:
+        await bot.restrict_chat_member(message.chat.id, target_id, ChatPermissions(), datetime.now() + timedelta(minutes=5))
 
 @bot.on_message(filters.outgoing & filters.command("trans"))
 def translate(client: "Client", message: "types.Message"):

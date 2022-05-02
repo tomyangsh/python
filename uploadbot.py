@@ -25,7 +25,7 @@ def get_thumbnail(video_path):
             .input(video_path, ss='1')
             .output(thumbnail, vframes=1)
             .overwrite_output()
-            .run()
+            .run(quiet=True)
         )
     return thumbnail
 
@@ -37,7 +37,7 @@ with Client("upload") as app:
     video_path = sys.argv[1]
     video_name = os.path.basename(video_path)
     try:
-        ep_no = re.search('\w\d\d\w\d\d', video_name).group()
+        ep_no = re.search('\w\d\d\w\d\d', video_name).group().upper()
         query = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
         res = requests.get('https://api.themoviedb.org/3/search/tv/?language=zh-CN&api_key=&query='+query).json()['results'][0]
         name_chi = re.sub('：', '_', res.get('name'))
