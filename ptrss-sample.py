@@ -1,11 +1,11 @@
 import requests, feedparser, datetime, json, os #需要安装feedparser 'pip install feedparser'
 
-old_list = json.load(open(os.path.dirname(__file__)+'/ptrss.db', "r")) #请先在同一目录下执行'touch ptrss.db'以确保该文件存在
+old_list = json.load(open(os.path.dirname(__file__)+'/ptrss.db', "r")) #请先在同一目录下执行 "echo '[]' > ptrss.db" 以确保该文件存在
 new_list = []
-link = ''
 
 def update(sitename, url):
     r = feedparser.parse(url)
+    global link
     if not r.entries[0].guid in old_list:
         link = r.entries[0].enclosures[0].href
     new_list.extend(list(i.guid for i in r.entries))
