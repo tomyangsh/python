@@ -1,4 +1,4 @@
-import requests, feedparser, datetime, json, os
+import requests, feedparser, datetime, json, os #需要安装feedparser 'pip install feedparser'
 
 old_list = json.load(open(os.path.dirname(__file__)+'/ptrss.db', "r")) #请先在同一目录下执行'touch ptrss.db'以确保该文件存在
 new_list = []
@@ -38,7 +38,7 @@ if ids:
 
 data = '{"arguments": {"path": "/path/to/download/directory/"}, "method": "free-space"}' #path改成下载目录路径
 r = requests.post(url, data=data, headers=headers).json()
-if r['arguments']['size-bytes']/1024/1024/1024 <= 200:
+if r['arguments']['size-bytes']/1024/1024/1024 <= 200: #硬盘剩余空间阈值(GB)
     exit()
 
 if link:
