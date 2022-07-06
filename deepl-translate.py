@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys, re, requests, os, time
 
 source = open(sys.argv[1], 'r')
@@ -5,7 +7,7 @@ target = open(os.path.splitext(sys.argv[1])[0]+'-zh.srt', 'w')
 url = 'https://api-free.deepl.com/v2/translate'
 
 def get_translation(text):
-    payload = {'auth_key': '08f52847-0478-45d5-2dbe-edbdbc80b5f0:fx', 'text': text, 'target_lang': 'ZH'}
+    payload = {'auth_key': 'xxx', 'text': text, 'target_lang': 'ZH'}
     result = requests.post(url, data=payload).json()['translations'][0]['text']
     return result
 
