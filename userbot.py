@@ -15,17 +15,6 @@ from datetime import datetime, timedelta
 
 deepl_key = os.getenv("DEEPL_KEY")
 
-'''
-music_list = []
-for root, dirs, files in os.walk("music"):
-     for file in files:
-             if file.endswith(".raw"):
-                     music_list.append(os.path.join(root, file))
-'''
-def am_search(query):
-    url = 'https://itunes.apple.com/us/search?term='+requests.utils.quote(query)+'&entity=song&limit=1'
-    return url
-
 bot = Client('userbot')
 
 def get_translation(text):
@@ -34,29 +23,6 @@ def get_translation(text):
     result = requests.post(url, data=payload).json()['translations'][0]['text']
     return result
 
-'''
-@bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("join"))
-async def join_group_call(client, m: Message):
-    group_call =
-
-group_call = GroupCallFactory(bot).get_file_group_call()
-
-@group_call.on_playout_ended
-async def switch_song(_, source):
-    group_call.input_filename = music_list[random.randint(0,len(music_list)-1)]
-
-@bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("live"))
-async def live_music(client, message):
-    await bot.send(functions.phone.CreateGroupCall(peer=(await bot.resolve_peer(message.chat.id)), random_id=688968644))
-    await asyncio.sleep(1)
-    await group_call.start(message.chat.id)
-
-@bot.on_message(filters.chat([-1001345466016, -522044327]) & filters.command("stop"))
-async def live_music(_, message):
-    await group_call.stop_playout()
-    the_call = 688968644
-    await bot.send(functions.phone.DiscardGroupCall(call=the_call))
-'''
 @aiocron.crontab('0 14 * * *')
 async def clean():
     msg_list = bot.search_messages(-1001345466016, query="回答正确", from_user=1890475209)
@@ -65,20 +31,6 @@ async def clean():
     msg_list = bot.search_messages(-1001345466016, from_user=1788219924)
     async for message in msg_list:
         await bot.delete_messages(-1001345466016, message.id)
-
-@aiocron.crontab('58 19 * * *')
-async def suo():
-    await bot.send_message(-1001222510019, '/suo')
-
-@bot.on_message(filters.chat(-1001222510019) & filters.regex("站点扩容进度: 0.999999999999999889"))
-async def kuo(client, message):
-    await bot.send_message(-1001222510019, '/kuo')
-
-@bot.on_message(filters.chat(-1001434021107) & filters.video)
-async def nfnf_auto_forward(client, message):
-    file_id = message.video.file_id
-    caption = message.caption or ''
-    await bot.send_video(-1001345466016, file_id, caption=caption)
 
 @bot.on_message(filters.chat("flower2048") & filters.new_chat_members)
 async def welcome(client, message):
@@ -102,7 +54,7 @@ def auto_answer(client: "Client", message: "types.Message"):
 @bot.on_message(filters.command("id") & filters.outgoing)
 def get_uid(client: "Client", message: "types.Message"):
     uid = bot.get_messages(message.chat.id, reply_to_message_ids=message.id).from_user.id
-    bot.edit_message_text(message.chat.id, message.id, '`'+str(uid)+'`')
+    bot.edit_message_text(message.chat.id, message.id, '`'+str(uid)+'\n'+str(message.chat.id)+'`')
 
 conn = psycopg2.connect("dbname=tmdb user=root")
 cur = conn.cursor()
@@ -124,62 +76,28 @@ def translate(client: "Client", message: "types.Message"):
     msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
     result = get_translation(msg.text or msg.caption)
     bot.edit_message_text(message.chat.id, message.id, result)
-'''
-@bot.on_message(filters.user(604039549) & filters.regex(r'站点扩容进度: 0.999999999999999'))
-def suo(client: "Client", message: "types.Message"):
-    bot.send_message(-1001222510019, '/suo')
-'''
-'''
-@bot.on_message(from_users=728062910, pattern=r'.*\n.*\n.*\n\n群内发送关键词'))
-def auto_lottery(client: "Client", message: "types.Message"):
-    msg = message.text
-    key_word = re.sub(r'.*\n.*\n.*\n\n群内发送关键词\s', '', msg)[:-5]
-    bot.send_message(message.chat.id, key_word)
-'''
+
 @bot.on_message(filters.sticker & filters.user([634261570, 681532273]))
 def reaction(client: "Client", message: "types.Message"):
     #sticker_id = message.sticker.file_id
     bot.send_reaction(message.chat.id, message.id, "💩")
 
-@bot.on_message(filters.regex(r'^/suo'))
-def reaction2(client: "Client", message: "types.Message"):
-    bot.send_reaction(message.chat.id, message.id, "💩")
+@bot.on_message(filters.photo & filters.user(1126746207))
+def reaction_tudou(client: "Client", message: "types.Message"):
+    bot.send_reaction(message.chat.id, message.id, "🤮")
 
 @bot.on_message(filters.user([1046900703, 1058117864]))
 def withdraw_master(client: "Client", message: "types.Message"):
     bot.forward_messages(-1001359252145, message.chat.id, message.id)
-'''
-@bot.on_message(filters.user(5298809748))
-def mxz185(client: "Client", message: "types.Message"):
-    bot.send_message(message.chat.id, '小M憋开挂了')
 
+@bot.on_message(filters.chat(-1001282810872))
+def nfgroup_relay_in(client: "Client", message: "types.Message"):
+    bot.forward_messages(-652122405, message.chat.id, message.id)
 
-@bot.on_message(filters.user(1381329404))
-def reply_inzer(client: "Client", message: "types.Message"):
-    msg = message.text
-    if not re.match(r'\d\dw$', msg):
-        return
-    time.sleep(3)
-    bot.send_message(message.chat.id, 'tomyang001', reply_to_message_id=message.id)
-    time.sleep(3)
-    bot.send_message(message.chat.id, '谢谢')
+@bot.on_message(filters.chat(-652122405) & filters.incoming)
+def nfgroup_relay_out(client: "Client", message: "types.Message"):
+    bot.forward_messages(-1001282810872, message.chat.id, message.id)
 
-@bot.on_message(filters.reply & filters.user(604039549))
-def auto_sign_in(client: "Client", message: "types.Message"):
-    msg = message.text
-    if not re.search(r'新的口令\(5.\)', msg):
-        return
-    key = re.search(r'/q (.*)', msg).group(1)
-    if len(key) > 6:
-        return
-    keylist = []
-    for i in permutations(key):
-        keylist.append(''.join(i))
-    anwser_list = set(keylist).intersection(titlelist)
-    if anwser_list:
-        result = next(iter(anwser_list))
-        bot.send_message(message.chat.id, '/q '+result)
-'''
 @bot.on_message(filters.outgoing & filters.regex(r'^re$'))
 def repeat_msg(client, message):
     source_msg = bot.get_messages(message.chat.id, reply_to_message_ids=message.id)
