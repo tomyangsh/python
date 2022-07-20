@@ -6,9 +6,9 @@ from torrentool.bencode import Bencode
 
 dic = {
         "phd": "https://tracker.privatehd.to/announce",
-	    "cmz": "https://tracker.cinemaz.to/announce",
-	    "avz": "https://tracker.avistaz.to/announce",
-	    "exo": "https://tracker.exoticaz.to/announce" 
+        "cmz": "https://tracker.cinemaz.to/announce",
+        "avz": "https://tracker.avistaz.to/announce",
+        "exo": "https://tracker.exoticaz.to/announce" 
         }
 
 torrent = Bencode.read_file(sys.argv[1])
