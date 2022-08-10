@@ -1,0 +1,15 @@
+import os
+
+from pyrogram import Client
+
+def client(name: str, **kwargs):
+    _client = Client(name=name, workdir=os.path.dirname(__file__), **kwargs)
+    return _client
+
+def msg(msg: str, chat_id=None):
+    with client('dtl') as bot:
+        bot.send_message(chat_id or 'me', msg)
+
+def img(img, chat_id=None):
+    with client('dtl') as bot:
+        bot.send_photo(chat_id or 'me', img)
