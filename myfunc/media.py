@@ -12,10 +12,14 @@ class Video():
         info = json.loads(subprocess.Popen(["mediainfo", "--Output=JSON", file], stdout=subprocess.PIPE).communicate()[0].decode())
         self.size = round(int(info["media"]["track"][0]['FileSize'])/(1024 ** 3), 2)
         self.duration = round(float(info["media"]["track"][0]['Duration'])/60)
+        self.width = info["media"]["track"][1]['Width']
+        self.height = info["media"]["track"][1]['Height']
+        self.fps = info["media"]["track"][1]['FrameRate']
         self.vcode = info["media"]["track"][1]['Format']
         self.vb = round(int(info["media"]["track"][1]['BitRate'])/1000)
         self.acode = info["media"]["track"][2]['Format']
         self.ab = round(int(info["media"]["track"][2]['BitRate'])/1000)
+        self.ac = int(info["media"]["track"][2]['Channels'])
         sublist = [track['Language'] for track in info["media"]["track"] if track["@type"] == "Text"]
         self.zhsub = 'zh' in sublist
         self.ensub = 'en' in sublist
