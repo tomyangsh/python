@@ -22,10 +22,10 @@ def search_tv(query, year=None):
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result['results']
 
-def search_person(query, year=None):
+def search_person(query):
     url = f'{URL_BASE}search/person'
     params = PARAMS_BASE.copy()
-    params.update({'query': query, 'primary_release_year': year, 'language': 'zh-CN'})
+    params.update({'query': query, 'language': 'zh-CN'})
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result['results']
 
