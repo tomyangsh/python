@@ -9,12 +9,16 @@ IMG_BASE = 'https://www.themoviedb.org/t/p/original'
 YT_BASE = 'https://www.youtube.com/watch?v='
 GENRE_DIC = json.load(open(os.path.dirname(__file__)+'/genre.json'))
 LANG = json.load(open(os.path.dirname(__file__)+'/lang.json'))
+GENDER_DIC = {0: None, 1: '女', 2: '男', 3: 'Non-binary'}
 STATUS_DIC = {
         'Returning Series': '在播',
         'Ended': '完结',
         'Canceled': '被砍',
         'In Production': '拍摄中'
         }
+
+def get_year(dic):
+    return dic["year"]
 
 class Movie():
     def __init__(self, name, year=None):
@@ -84,3 +88,39 @@ class TV():
 
     def __str__(self):
         return f'{self.name} ({self.year})'
+
+class Person():
+    def __init__(self, name):
+        search = method.search_person(name)
+        if not search:
+            return
+        result = search[0]
+        self.id = result["id"]
+        self.name = result["name"]
+        self.img = f'{IMG_BASE}{result["profile_path"]}'
+        self.aworks = []
+        for w in result["known_for"]:
+            if w["media_type"] == "movie":
+                self.aworks.append({'type': 'movie', 'id': w['id'], 'name': w['title'], 'year': w['release_date'][:4]})
+            else:
+                self.aworks.append({'type': 'tv', 'id': w['id'], 'name': w['name'], 'year': w['first_air_date'][:4]})
+        info = method.person_info(self.id)
+        self.birthday = info["birthday"]
+        self.deathday = info["deathday"]
+        self.gender = GENDER_DIC.get(info["gender"])
+        self.place_of_birth = info["place_of_birth"]
+        self.known_for_department = info["known_for_department"]
+
+    def rworks(self):
+        if self.known_for_department == "Acting":
+            wlist = method.person_credits(self.id)["cast"]
+        else:
+            wlist = [w for w in method.person_credits(self.id)["crew"] if w["department"] == self.known_for_department]
+        rworks = []
+        for w in wlist:
+            if w["media_type"] == "movie":
+                rworks.append({'type': 'movie', 'id': w['id'], 'name': w['title'], 'year': w['release_date'][:4]})
+            else:
+                rworks.append({'type': 'tv', 'id': w['id'], 'name': w['name'], 'year': w['first_air_date'][:4]})
+        rworks.sort(reverse=True, key=get_year)
+        return rworks
