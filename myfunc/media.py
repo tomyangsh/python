@@ -41,12 +41,7 @@ def upload(content: 'bytes', name='img.png'):
     r = requests.post("http://up.ccp.ovh/upload/", files={name: content})
     return r.text
 
-def ytdl_audio(url):
-    info = YoutubeDL().extract_info(url, download=False)
-    url = [i['url'] for i in info['formats'] if i['ext'] == 'm4a'][-1]
-    return url
-
 def ytdl(url):
     info = YoutubeDL().extract_info(url, download=False)
-    url = [i['url'] for i in info['formats'] if i['ext'] == 'mp4'][-1]
+    url = [i['url'] for i in info['formats'] if not i.get('container') and i['ext'] == 'mp4'][-1]
     return url
