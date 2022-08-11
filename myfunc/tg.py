@@ -2,7 +2,7 @@ import os
 
 from pyrogram import Client
 
-def client(name: str, **kwargs):
+def client(name='dtl', **kwargs):
     _client = Client(name=name, workdir=os.path.dirname(__file__), **kwargs)
     return _client
 
