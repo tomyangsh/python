@@ -11,9 +11,9 @@ class Video():
     def __init__(self, file):
         info = json.loads(subprocess.Popen(["mediainfo", "--Output=JSON", file], stdout=subprocess.PIPE).communicate()[0].decode())
         self.size = round(int(info["media"]["track"][0]['FileSize'])/(1024 ** 3), 2)
-        self.duration = round(float(info["media"]["track"][0]['Duration'])/60)
-        self.width = info["media"]["track"][1]['Width']
-        self.height = info["media"]["track"][1]['Height']
+        self.duration = int(float(info["media"]["track"][0]['Duration']))
+        self.width = int(info["media"]["track"][1]['Width'])
+        self.height = int(info["media"]["track"][1]['Height'])
         self.fps = info["media"]["track"][1]['FrameRate']
         self.vcode = info["media"]["track"][1]['Format']
         self.vb = round(int(info["media"]["track"][1]['BitRate'])/1000)
