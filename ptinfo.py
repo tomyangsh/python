@@ -66,10 +66,12 @@ IMDb  https://www.imdb.com/title/{m.imdb}/
 
 else:
     name = re.sub('\.', ' ', re.match('(\S+)\.[Ss]\d\d[Ee]\d\d', file_name).group(1))
+    season = int(re.match('\S+\.[Ss](\d\d)[Ee]\d\d', file_name).group(1))
     t = type.TV(name)
+    poster = next((s['poster'] for s in t.seasons if s['season'] == season), '')
     cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in t.cast])
     ptinfo = f"""
-[img]{t.poster_latest}[/img]
+[img]{poster}[/img]
 [size=3]
 [b]{t.name} {t.ori_name} ({t.year})[/b]
 
