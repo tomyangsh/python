@@ -8,7 +8,7 @@ import json
 import ffmpeg
 import requests
 
-from tmdb import type
+from tmdb import method, type
 from myfunc import media
 
 file_path = sys.argv[1]
@@ -39,7 +39,12 @@ def zh_name(id):
 if not re.search('[Ss]\d\d[Ee]\d\d', file_name):
     name = re.sub('\.', ' ', re.match('(\D+)\.\d\d\d\d', file_name).group(1))
     year = re.search('\.(\d\d\d\d)\.', file_name).group(1)
-    m = type.Movie(name, year)
+    s = method.search_movie(name, year)
+    s = [{'id': i['id'], 'name': i['title'], 'date': i['release_date']} for i in s[:3]]
+    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s))
+    c = int(input())
+    id = s[c]['id']
+    m = type.Movie(id)
     cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in m.cast])
     ptinfo = f"""
 [img]{m.poster}[/img]
@@ -67,7 +72,12 @@ IMDb  https://www.imdb.com/title/{m.imdb}/
 else:
     name = re.sub('\.', ' ', re.match('(\S+)\.[Ss]\d\d[Ee]\d\d', file_name).group(1))
     season = int(re.match('\S+\.[Ss](\d\d)[Ee]\d\d', file_name).group(1))
-    t = type.TV(name)
+    s = method.search_tv(name)
+    s = [{'id': i['id'], 'name': i['name'], 'date': i['first_air_date']} for i in s[:3]]
+    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s))
+    c = int(input())
+    id = s[c]['id']
+    t = type.TV(id)
     poster = next((s['poster'] for s in t.seasons if s['season'] == season), '')
     cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in t.cast])
     ptinfo = f"""

@@ -7,31 +7,69 @@ HEADERS = {
 URL_BASE = 'https://api.themoviedb.org/3/'
 
 PARAMS_BASE = {'api_key': 'f090bb54758cabf231fb605d3e3e0468'}
+LANG = 'zh-CN'
+
+def discover():
+    url = f'{URL_BASE}discover/movie'
+    params = PARAMS_BASE.copy()
+    params['language'] = LANG
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    result_list = []
+    for i in result['results']:
+        type = 'movie'
+        id = i['id']
+        name = i.get('title')
+        date = i.get('release_date') or ''
+        img = i.get('poster_path') or '/'
+        des = i.get('overview')
+        result_list.append({'type': type, 'id': id, 'name': name, 'year': date[:4], 'img': img, 'des': des})
+    return result_list
+
+def multi_search(query):
+    url = f'{URL_BASE}search/multi'
+    params = PARAMS_BASE.copy()
+    params['language'] = LANG
+    params.update({'query': query, 'include_adult': 'true'})
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    result_list = []
+    for i in result['results']:
+        type = i['media_type']
+        id = i['id']
+        name = i.get('title') or i.get('name')
+        date = i.get('release_date') or i.get('first_air_date') or ''
+        img = i.get('poster_path') or i.get('profile_path') or '/'
+        des = i.get('overview')
+        result_list.append({'type': type, 'id': id, 'name': name, 'year': date[:4], 'img': img, 'des': des})
+    return result_list
 
 def search_movie(query, year=None):
     url = f'{URL_BASE}search/movie'
     params = PARAMS_BASE.copy()
-    params.update({'query': query, 'primary_release_year': year, 'include_adult': 'true', 'language': 'zh-CN'})
+    params['language'] = LANG
+    params.update({'query': query, 'primary_release_year': year, 'include_adult': 'true'})
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result['results']
 
 def search_tv(query, year=None):
     url = f'{URL_BASE}search/tv'
     params = PARAMS_BASE.copy()
-    params.update({'query': query, 'first_air_date__year': year, 'language': 'zh-CN'})
+    params['language'] = LANG
+    params.update({'query': query, 'first_air_date__year': year})
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result['results']
 
 def search_person(query):
     url = f'{URL_BASE}search/person'
     params = PARAMS_BASE.copy()
-    params.update({'query': query, 'language': 'zh-CN'})
+    params['language'] = LANG
+    params.update({'query': query})
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result['results']
 
 def movie_info(id):
     url = f'{URL_BASE}movie/{id}'
     params = PARAMS_BASE.copy()
+    params['language'] = LANG
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result
 
@@ -54,9 +92,22 @@ def movie_backdrops(id):
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result["backdrops"]
 
+def movie_release(id):
+    url = f'{URL_BASE}movie/{id}/release_dates'
+    params = PARAMS_BASE.copy()
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    return result["results"]
+
+def movie_translation(id):
+    url = f'{URL_BASE}movie/{id}/translations'
+    params = PARAMS_BASE.copy()
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    return result["translations"]
+
 def tv_info(id):
     url = f'{URL_BASE}tv/{id}'
     params = PARAMS_BASE.copy()
+    params['language'] = LANG
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result
 
@@ -94,6 +145,6 @@ def person_info(id):
 def person_credits(id):
     url = f'{URL_BASE}person/{id}/combined_credits'
     params = PARAMS_BASE.copy()
-    params.update({'language': 'zh-CN'})
+    params['language'] = LANG
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result
