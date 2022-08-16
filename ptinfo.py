@@ -41,7 +41,7 @@ if not re.search('[Ss]\d\d[Ee]\d\d', file_name):
     year = re.search('\.(\d\d\d\d)\.', file_name).group(1)
     s = method.search_movie(name, year)
     s = [{'id': i['id'], 'name': i['title'], 'date': i['release_date']} for i in s[:3]]
-    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s))
+    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s), file=sys.stderr)
     c = int(input())
     id = s[c]['id']
     m = type.Movie(id)
@@ -74,7 +74,7 @@ else:
     season = int(re.match('\S+\.[Ss](\d\d)[Ee]\d\d', file_name).group(1))
     s = method.search_tv(name)
     s = [{'id': i['id'], 'name': i['name'], 'date': i['first_air_date']} for i in s[:3]]
-    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s))
+    print('\n'.join(f"{s.index(i)}. {i['name']} {i['date']}" for i in s), file=sys.stderr)
     c = int(input())
     id = s[c]['id']
     t = type.TV(id)
