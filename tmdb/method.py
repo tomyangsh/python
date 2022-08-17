@@ -9,21 +9,25 @@ URL_BASE = 'https://api.themoviedb.org/3/'
 PARAMS_BASE = {'api_key': 'f090bb54758cabf231fb605d3e3e0468'}
 LANG = 'zh-CN'
 
-def discover():
-    url = f'{URL_BASE}discover/movie'
-    params = PARAMS_BASE.copy()
-    params['language'] = LANG
-    result = requests.get(url, headers=HEADERS, params=params).json()
+def results_handler(result, type=None):
     result_list = []
     for i in result['results']:
-        type = 'movie'
+        if not type:
+            type = i['media_type']
         id = i['id']
-        name = i.get('title')
-        date = i.get('release_date') or ''
-        img = i.get('poster_path') or '/'
+        name = i.get('title') or i.get('name')
+        date = i.get('release_date') or i.get('first_air_date') or ''
+        img = i.get('poster_path') or i.get('profile_path')
         des = i.get('overview')
         result_list.append({'type': type, 'id': id, 'name': name, 'year': date[:4], 'img': img, 'des': des})
     return result_list
+
+def discover(type='movie'):
+    url = f'{URL_BASE}discover/{type}'
+    params = PARAMS_BASE.copy()
+    params['language'] = LANG
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    return results_handler(result, type)
 
 def multi_search(query):
     url = f'{URL_BASE}search/multi'
@@ -31,16 +35,7 @@ def multi_search(query):
     params['language'] = LANG
     params.update({'query': query, 'include_adult': 'true'})
     result = requests.get(url, headers=HEADERS, params=params).json()
-    result_list = []
-    for i in result['results']:
-        type = i['media_type']
-        id = i['id']
-        name = i.get('title') or i.get('name')
-        date = i.get('release_date') or i.get('first_air_date') or ''
-        img = i.get('poster_path') or i.get('profile_path') or '/'
-        des = i.get('overview')
-        result_list.append({'type': type, 'id': id, 'name': name, 'year': date[:4], 'img': img, 'des': des})
-    return result_list
+    return results_handler(result)
 
 def search_movie(query, year=None):
     url = f'{URL_BASE}search/movie'
@@ -48,15 +43,15 @@ def search_movie(query, year=None):
     params['language'] = LANG
     params.update({'query': query, 'primary_release_year': year, 'include_adult': 'true'})
     result = requests.get(url, headers=HEADERS, params=params).json()
-    return result['results']
+    return results_handler(result, 'movie')
 
 def search_tv(query, year=None):
     url = f'{URL_BASE}search/tv'
     params = PARAMS_BASE.copy()
     params['language'] = LANG
-    params.update({'query': query, 'first_air_date__year': year})
+    params.update({'query': query, 'first_air_date_year': year})
     result = requests.get(url, headers=HEADERS, params=params).json()
-    return result['results']
+    return results_handler(result, 'tv')
 
 def search_person(query):
     url = f'{URL_BASE}search/person'
@@ -64,7 +59,7 @@ def search_person(query):
     params['language'] = LANG
     params.update({'query': query})
     result = requests.get(url, headers=HEADERS, params=params).json()
-    return result['results']
+    return results_handler(result, 'person')
 
 def movie_info(id):
     url = f'{URL_BASE}movie/{id}'
