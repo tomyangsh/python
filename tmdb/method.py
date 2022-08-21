@@ -143,3 +143,9 @@ def person_credits(id):
     params['language'] = LANG
     result = requests.get(url, headers=HEADERS, params=params).json()
     return result
+
+def person_external_ids(id):
+    url = f'{URL_BASE}person/{id}/external_ids'
+    params = PARAMS_BASE.copy()
+    result = requests.get(url, headers=HEADERS, params=params).json()
+    return result

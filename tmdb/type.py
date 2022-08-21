@@ -113,6 +113,8 @@ class Person():
         self.gender = GENDER_DIC.get(info["gender"])
         self.place_of_birth = info["place_of_birth"]
         self.known_for_department = info["known_for_department"]
+        external_ids = method.person_external_ids(id)
+        self.ins = external_ids["instagram_id"]
 
     def rworks(self):
         if self.known_for_department == "Acting":
