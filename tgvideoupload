@@ -35,7 +35,7 @@ with tg.client() as app:
         caption = '#'+name_chi+' '+name_org+' '+ep_no
         print(caption)
     except Exception as e:
-        caption = ''
+        caption = video_name
     meta = get_metadata(video_path)
     thumbnail = media.bytesio(media.ss(video_path), 'png')
     app.send_video("me", video_path, caption=caption, thumb=thumbnail, **meta, progress=progress)

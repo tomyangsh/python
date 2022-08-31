@@ -20,7 +20,7 @@ class Video():
         self.acode = info["media"]["track"][2]['Format']
         self.ab = round(int(info["media"]["track"][2]['BitRate'])/1000)
         self.ac = int(info["media"]["track"][2]['Channels'])
-        sublist = [track['Language'] for track in info["media"]["track"] if track["@type"] == "Text"]
+        sublist = [track.get('Language') for track in info["media"]["track"] if track["@type"] == "Text"]
         self.zhsub = 'zh' in sublist
         self.ensub = 'en' in sublist
 
