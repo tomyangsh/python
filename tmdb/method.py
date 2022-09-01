@@ -9,11 +9,10 @@ URL_BASE = 'https://api.themoviedb.org/3/'
 PARAMS_BASE = {'api_key': 'f090bb54758cabf231fb605d3e3e0468'}
 LANG = 'zh-CN'
 
-def results_handler(result, type=None):
+def results_handler(result, default_type=None):
     result_list = []
     for i in result['results']:
-        if not type:
-            type = i['media_type']
+        type = i.get('media_type') or default_type
         id = i['id']
         name = i.get('title') or i.get('name')
         date = i.get('release_date') or i.get('first_air_date') or ''
@@ -22,12 +21,12 @@ def results_handler(result, type=None):
         result_list.append({'type': type, 'id': id, 'name': name, 'year': date[:4], 'img': img, 'des': des})
     return result_list
 
-def discover(type='movie'):
-    url = f'{URL_BASE}discover/{type}'
+def discover(default_type='movie'):
+    url = f'{URL_BASE}discover/{default_type}'
     params = PARAMS_BASE.copy()
     params['language'] = LANG
     result = requests.get(url, headers=HEADERS, params=params).json()
-    return results_handler(result, type)
+    return results_handler(result, default_type)
 
 def multi_search(query):
     url = f'{URL_BASE}search/multi'
