@@ -35,15 +35,12 @@ class Movie():
         else:
             self.ok = True
         self.id = id
-        self.name = info["title"]
+        translations = method.movie_translation(id)
+        self.name = next((i['data']['title'] for i in translations if i['data']['title']), '')
         self.ori_name = info["original_title"]
         self.year = info["release_date"][:4]
         self.date = info["release_date"]
-        self.des = info["overview"]
-        if not self.des:
-            trans = method.movie_translation(id)
-            trans = (i["data"]["overview"] for i in trans if i["name"] == "English")
-            self.des = next(trans, '')
+        self.des = next((i['data']['overview'] for i in translations if i['data']['overview']), '')
         self.poster = img(info["poster_path"])
         self.backdrop = img(info["backdrop_path"])
         self.score = round(info["vote_average"], 1)
@@ -66,11 +63,12 @@ class TV():
     def __init__(self, id):
         info = method.tv_info(id)
         self.id = id
-        self.name = info["name"]
+        translations = method.tv_translation(id)
+        self.name = next((i['data']['name'] for i in translations if i['data']['name']), '')
         self.ori_name = info["original_name"]
         self.year = info["first_air_date"][:4]
         self.date = info["first_air_date"]
-        self.des = info["overview"]
+        self.des = next((i['data']['overview'] for i in translations if i['data']['overview']), '')
         self.network = [n.get("name") for n in info["networks"]]
         self.poster = img(info["poster_path"])
         self.seasons = [{'season': s["season_number"], 'eps': s["episode_count"], 'date': s["air_date"], 'poster': img(s["poster_path"])} for s in info["seasons"]]
