@@ -7,6 +7,7 @@ import re
 import json
 import ffmpeg
 import requests
+import webbrowser
 
 from tmdb import method, type
 from myfunc import media
@@ -45,7 +46,7 @@ if not re.search('[Ss]\d\d[Ee]\d\d', file_name):
     id = s[c]['id']
     m = type.Movie(id)
     cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in m.cast])
-    ptinfo = f"""
+    des = f"""
 [img]{m.poster}[/img]
 [size=3]
 [b]{m.name} {m.ori_name} ({m.year})[/b]
@@ -67,6 +68,8 @@ IMDb  https://www.imdb.com/title/{m.imdb}/
 {mediainfo}
 [/expand]
 """
+    dic = {'cat': '419', 'name': m.name, 'imdb': f'https://www.imdb.com/title/{m.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
+
 
 else:
     name = re.sub('\.', ' ', re.match('(\S+)\.[Ss]\d\d[Ee]\d\d', file_name).group(1))
@@ -78,7 +81,7 @@ else:
     t = type.TV(id)
     poster = next((s['poster'] for s in t.seasons if s['season'] == season), '')
     cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in t.cast])
-    ptinfo = f"""
+    des = f"""
 [img]{poster}[/img]
 [size=3]
 [b]{t.name} {t.ori_name} ({t.year})[/b]
@@ -100,7 +103,9 @@ IMDb  https://www.imdb.com/title/{t.imdb}/
 {mediainfo}
 [/expand]
 """
+    dic = {'cat': '402', 'name': t.name, 'imdb': f'https://www.imdb.com/title/{t.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
-
-print(ptinfo)
+json_url = media.upload(json.dumps(dic, ensure_ascii=False), 'info.json')
+json_url = re.sub('http', 'https', json_url)
+webbrowser.open('https://kp.m-team.cc/upload.php#info='+json_url)
 
