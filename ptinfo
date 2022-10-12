@@ -68,7 +68,7 @@ IMDb  https://www.imdb.com/title/{m.imdb}/
 {mediainfo}
 [/expand]
 """
-    dic = {'cat': '419', 'name': m.name, 'imdb': f'https://www.imdb.com/title/{m.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
+    dic = {'cat': '419', 'name': m.zh_names, 'imdb': f'https://www.imdb.com/title/{m.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
 
 else:
@@ -103,7 +103,7 @@ IMDb  https://www.imdb.com/title/{t.imdb}/
 {mediainfo}
 [/expand]
 """
-    dic = {'cat': '402', 'name': t.name, 'imdb': f'https://www.imdb.com/title/{t.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
+    dic = {'cat': '402', 'name': t.zh_names, 'imdb': f'https://www.imdb.com/title/{t.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
 json_url = media.upload(json.dumps(dic, ensure_ascii=False), 'info.json')
 json_url = re.sub('http', 'https', json_url)

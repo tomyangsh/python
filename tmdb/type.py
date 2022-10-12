@@ -37,6 +37,7 @@ class Movie():
         self.id = id
         translations = method.movie_translation(id)
         self.name = next((i['data']['title'] for i in translations if i['data']['title']), '')
+        self.zh_names = '/'.join({i['data']['title'] for i in translations if i["iso_639_1"] == 'zh'and i['data']['title']})
         self.ori_name = info["original_title"]
         self.year = info["release_date"][:4]
         self.date = info["release_date"]
@@ -65,6 +66,7 @@ class TV():
         self.id = id
         translations = method.tv_translation(id)
         self.name = next((i['data']['name'] for i in translations if i['data']['name']), '')
+        self.zh_names = '/'.join({i['data']['name'] for i in translations if i["iso_639_1"] == 'zh' and i['data']['name']})
         self.ori_name = info["original_name"]
         self.year = info["first_air_date"][:4]
         self.date = info["first_air_date"]
