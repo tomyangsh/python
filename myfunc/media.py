@@ -2,7 +2,6 @@ import subprocess
 import requests
 import ffmpeg
 import json
-import base64
 
 from yt_dlp import YoutubeDL
 
@@ -38,9 +37,9 @@ def ss(file, time: 'str'=None) -> 'bytes':
     ss = ffmpeg.input(file, ss=time or '1:00').output('pipe:', format='image2', vframes=1).run_async(pipe_stdout=True, quiet=True).communicate()[0]
     return ss
 
-def upload(content: 'bytes', name='img.png'):
-    r = requests.post("https://freeimage.host/api/1/upload", data={'key': '6d207e02198a847aa98d0a2a901485a5', 'action': 'upload', 'source': base64.b64encode(content)}).json()
-    return r["image"]["file"]["resource"]["chain"]["image"]
+def upload(content: 'bytes'):
+    r = requests.post("https://api.imgbb.com/1/upload", data={'key': '314470a578e045760318fd032d9637f7'}, files={'image': content}).json()
+    return r['data']['url']
 
 def ytdl(url):
     info = YoutubeDL().extract_info(url, download=False)
