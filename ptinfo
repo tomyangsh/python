@@ -27,86 +27,39 @@ try:
 except Exception as e:
     pass
 
+query = re.match('(\D+)\.((\d){4}|(\w\d\d){2})', file_name).group(1)
+query = re.sub('\.', ' ', query)
+search = requests.get(f'https://oracle.tomyangsh.pw/api/search?query={query}').json()
+if search:
+    print('\n'.join(f"{search.index(i)}. {i['cat']} {i['name']} {i.get('date')}" for i in search[:5]))
+    choice = int(input())
+    choice = search[choice]
 
-def zh_name(id):
-     url = f'https://oracle.tomyangsh.pw/wiki/{id}'
-     return requests.get(url).text
+detail = requests.get('https://oracle.tomyangsh.pw/api/ptinfo', params=choice).json()
 
-if not re.search('[Ss]\d\d[Ee]\d\d', file_name):
-    name = re.sub('\.', ' ', re.match('(\D+)\.\d\d\d\d', file_name).group(1))
-    year = re.search('\.(\d\d\d\d)\.', file_name).group(1)
-    s = method.search_movie(name, year)[:3]
-    if s:
-        print('\n'.join(f"{s.index(i)}. {i['name']} {i['year']}" for i in s), file=sys.stderr)
-        c = int(input())
-        id = s[c]['id']
-    else:
-        print('Movie id:')
-        id = int(input())
-    m = type.Movie(id)
-    cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in m.cast])
-    des = f"""
-[img]{m.poster}[/img]
-[size=3]
-[b]{m.name} {m.ori_name} ({m.year})[/b]
-
-导演   {'  '.join(m.director)}
-类型   {' / '.join(m.genres)}
-国家   {' / '.join(m.country)}
-语言   {m.lang}
-上映   {m.date}
-片长   {m.runtime}分钟
-IMDb  https://www.imdb.com/title/{m.imdb}/
-演员   {cast}
-
-{m.des}
-[/size]
+if detail['cat'] == 'movie':
+    des = f"""{detail['info']}
 {thumb}
 
 [expand]
 {mediainfo}
-[/expand]
-"""
-    dic = {'cat': '419', 'name': m.zh_names, 'imdb': f'https://www.imdb.com/title/{m.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
+[/expand]"""
 
+    dic = {'cat': '419', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
-else:
-    name = re.sub('\.', ' ', re.match('(\S+)\.[Ss]\d\d[Ee]\d\d', file_name).group(1))
-    season = int(re.match('\S+\.[Ss](\d\d)[Ee]\d\d', file_name).group(1))
-    s = method.search_tv(name)[:3]
-    if s:
-        print('\n'.join(f"{s.index(i)}. {i['name']} {i['year']}" for i in s), file=sys.stderr)
-        c = int(input())
-        id = s[c]['id']
-    else:
-        print('TV id:')
-        id = int(input())
-    t = type.TV(id)
-    poster = next((s['poster'] for s in t.seasons if s['season'] == season), '')
-    cast = '\n          '.join([zh_name(i['id']) or i['name'] for i in t.cast])
-    des = f"""
-[img]{poster}[/img]
-[size=3]
-[b]{t.name} {t.ori_name} ({t.year})[/b]
-
-主创   {'  '.join(t.creator)}
-类型   {' / '.join(t.genres)}
-国家   {' / '.join(t.country)}
-语言   {t.lang}
-网络   {'  '.join(t.network)}
-首播   {t.date}
-IMDb  https://www.imdb.com/title/{t.imdb}/
-演员   {cast}
-
-{t.des}
-[/size]
+if detail['cat'] == 'tv':
+    print('\n'.join(f"{detail['poster'].index(i)}. {i['name']}" for i in detail['poster']))
+    choice = int(input())
+    poster = detail['poster'][choice]['path']
+    des = f"""[img]{poster}[/img]
+{detail['info']}
 {thumb}
 
 [expand]
 {mediainfo}
-[/expand]
-"""
-    dic = {'cat': '402', 'name': t.zh_names, 'imdb': f'https://www.imdb.com/title/{t.imdb}/', 'code': '1', 'res': '1', 'area': '2', 'des': des}
+[/expand]"""
+
+    dic = {'cat': '402', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
 json_url = requests.post('https://fars.ee/', files={'file': json.dumps(dic, ensure_ascii=False)}).text
 json_url = re.search('url: (.+)\\n', json_url).group(1)
