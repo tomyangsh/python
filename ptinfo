@@ -29,13 +29,13 @@ except Exception as e:
 
 query = re.match('(\D+)\.((\d){4}|(\w\d\d){2})', file_name).group(1)
 query = re.sub('\.', ' ', query)
-search = requests.get(f'https://oracle.tomyangsh.pw/api/search?query={query}').json()
+search = requests.get(f'https://oracle.tomyangsh.pw/ptinfo/api/search?query={query}').json()
 if search:
     print('\n'.join(f"{search.index(i)}. {i['cat']} {i['name']} {i.get('date')}" for i in search[:5]))
     choice = int(input())
     choice = search[choice]
 
-detail = requests.get('https://oracle.tomyangsh.pw/api/ptinfo', params=choice).json()
+detail = requests.get('https://oracle.tomyangsh.pw/ptinfo/api/detail', params=choice).json()
 
 if detail['cat'] == 'movie':
     des = f"""{detail['info']}
