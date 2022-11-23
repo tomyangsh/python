@@ -27,7 +27,7 @@ try:
 except Exception as e:
     pass
 
-query = re.match('(\D+)\.((\d){4}|(\w\d\d){2})', file_name).group(1)
+query = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name).group(1)
 query = re.sub('\.', ' ', query)
 search = requests.get(f'https://oracle.tomyangsh.pw/ptinfo/api/search?query={query}').json()
 if search:
