@@ -8,6 +8,7 @@ import json
 import ffmpeg
 import requests
 import webbrowser
+import cn2an
 
 from tmdb import method, type
 from myfunc import media
@@ -27,8 +28,8 @@ try:
 except Exception as e:
     pass
 
-query = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name).group(1)
-query = re.sub('\.', ' ', query)
+parse = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name)
+query = re.sub('\.', ' ', parse.group(1))
 search = requests.get(f'https://oracle.tomyangsh.pw/ptinfo/api/search?query={query}').json()
 if search:
     print('\n'.join(f"{search.index(i)}. {i['cat']} {i['name']} {i.get('date')}" for i in search[:5]))
@@ -48,6 +49,10 @@ if detail['cat'] == 'movie':
     dic = {'cat': '419', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
 if detail['cat'] == 'tv':
+    parse_ep = re.findall('\d+', parse.group(2))
+    season = cn2an.an2cn(parse_ep[0])
+    ep = parse_ep[1].lstrip('0')
+    name = f"{detail['zh_names']} 第{season}季 第{ep}集"
     print('\n'.join(f"{detail['poster'].index(i)}. {i['name']}" for i in detail['poster']))
     choice = int(input())
     poster = detail['poster'][choice]['path']
@@ -59,7 +64,7 @@ if detail['cat'] == 'tv':
 {mediainfo}
 [/expand]"""
 
-    dic = {'cat': '402', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
+    dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
 
 json_url = requests.post('https://fars.ee/', files={'file': json.dumps(dic, ensure_ascii=False)}).text
 json_url = re.search('url: (.+)\\n', json_url).group(1)
