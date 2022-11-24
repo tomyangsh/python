@@ -17,6 +17,7 @@ file_path = sys.argv[1]
 file_name = os.path.basename(file_path)
 
 mediainfo = media.mediainfo(file_path)
+zhsub = media.Video(file_path).zhsub
 
 thumb = []
 
@@ -46,7 +47,7 @@ if detail['cat'] == 'movie':
 {mediainfo}
 [/expand]"""
 
-    dic = {'cat': '419', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
+    dic = {'cat': '419', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
 
 if detail['cat'] == 'tv':
     parse_ep = re.findall('\d+', parse.group(2))
@@ -64,7 +65,7 @@ if detail['cat'] == 'tv':
 {mediainfo}
 [/expand]"""
 
-    dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des}
+    dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
 
 json_url = requests.post('https://fars.ee/', files={'file': json.dumps(dic, ensure_ascii=False)}).text
 json_url = re.search('url: (.+)\\n', json_url).group(1)
