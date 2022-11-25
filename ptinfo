@@ -67,7 +67,7 @@ if detail['cat'] == 'tv':
 
     dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
 
-json_url = requests.post('https://fars.ee/', files={'file': json.dumps(dic, ensure_ascii=False)}).text
-json_url = re.search('url: (.+)\\n', json_url).group(1)
-webbrowser.open('https://kp.m-team.cc/upload.php#info='+json_url)
+forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', data={'data': json.dumps(dic, ensure_ascii=False)}).text
+forminfo_url = f"https://oracle.tomyangsh.pw/ptinfo/api/forminfo?id={forminfo_id}"
+webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
 
