@@ -35,7 +35,13 @@ search = requests.get(f'https://oracle.tomyangsh.pw/ptinfo/api/search?query={que
 if search:
     print('\n'.join(f"{search.index(i)}. {i['cat']} {i['name']} {i.get('date')}" for i in search[:5]))
     choice = int(input())
-    choice = search[choice]
+    if choice in range(0, 5):
+        choice = search[choice]
+    else:
+        print('cat:')
+        cat = input()
+        id = choice
+        choice = {'id': str(id), 'cat': cat}
 
 detail = requests.get('https://oracle.tomyangsh.pw/ptinfo/api/detail', params=choice).json()
 
