@@ -14,7 +14,7 @@ class Video():
         self.duration = int(float(info["media"]["track"][0]['Duration']))
         self.width = int(info["media"]["track"][1]['Width'])
         self.height = int(info["media"]["track"][1]['Height'])
-        self.fps = info["media"]["track"][1]['FrameRate']
+        self.fps = info["media"]["track"][1].get('FrameRate') or info["media"]["track"][1].get('FrameRate_Original')
         self.vcode = info["media"]["track"][1]['Format']
         self.vb = round(int(info["media"]["track"][1]['BitRate'])/1000)
         self.acode = info["media"]["track"][2]['Format']
