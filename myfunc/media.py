@@ -23,6 +23,7 @@ class Video():
         sublist = [track.get('Language') for track in info["media"]["track"] if track["@type"] == "Text"]
         self.zhsub = 'zh' in sublist
         self.ensub = 'en' in sublist
+        self.uid = '%x' % int(info["media"]["track"][0]['UniqueID'])
 
 def bytesio(content: 'bytes', ext='mp4'):
     f = BytesIO(content)
