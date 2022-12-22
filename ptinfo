@@ -42,6 +42,9 @@ if search:
         cat = input()
         id = choice
         choice = {'id': str(id), 'cat': cat}
+else:
+    print('id/cat')
+    choice = {'id': input(), 'cat': input()}
 
 detail = requests.get('https://oracle.tomyangsh.pw/ptinfo/api/detail', params=choice).json()
 
