@@ -12,10 +12,7 @@ dic = {
         }
 
 torrent = Bencode.read_file(sys.argv[1])
-site = ''
-while not site in dic:
-    site = input("Site: ({}) ".format('/'.join(list(i for i in dic))))
-torrent["info"].update({'source': site})
+site = input("Site: ({}) ".format('/'.join(list(i for i in dic))))
 torrent.update({'announce': dic.get(site)})
 output = Bencode.encode(torrent)
 
