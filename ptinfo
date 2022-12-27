@@ -38,13 +38,9 @@ if search:
     if choice in range(0, 5):
         choice = search[choice]
     else:
-        print('cat:')
-        cat = input()
-        id = choice
-        choice = {'id': str(id), 'cat': cat}
+        choice = {'id': choice, 'cat': input('cat: ')}
 else:
-    print('id/cat')
-    choice = {'id': input(), 'cat': input()}
+    choice = {'id': input('id: '), 'cat': input('cat: ')}
 
 detail = requests.get('https://oracle.tomyangsh.pw/ptinfo/api/detail', params=choice).json()
 
@@ -76,7 +72,7 @@ if detail['cat'] == 'tv':
 
     dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
 
-forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', data={'data': json.dumps(dic, ensure_ascii=False)}).text
+forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', data=dic).text
 forminfo_url = f"https://oracle.tomyangsh.pw/ptinfo/api/forminfo?id={forminfo_id}"
 webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
 
