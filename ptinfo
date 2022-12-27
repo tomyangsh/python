@@ -72,7 +72,7 @@ if detail['cat'] == 'tv':
 
     dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
 
-forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', data=dic).text
+forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', json=dic).text
 forminfo_url = f"https://oracle.tomyangsh.pw/ptinfo/api/forminfo?id={forminfo_id}"
 webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
 
