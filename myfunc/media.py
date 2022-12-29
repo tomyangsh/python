@@ -20,9 +20,9 @@ class Video():
         self.acode = info["media"]["track"][2]['Format']
         self.ab = round(int(info["media"]["track"][2]['BitRate'])/1000)
         self.ac = int(info["media"]["track"][2]['Channels'])
-        sublist = [track.get('Language') for track in info["media"]["track"] if track["@type"] == "Text"]
-        self.zhsub = 'zh' in sublist
-        self.ensub = 'en' in sublist
+        self.sublist = tuple(track.get('Language') for track in info["media"]["track"] if track["@type"] == "Text")
+        self.zhsub = any(x in ('zh', 'zh-Hans', 'zh-Hant') for x in self.sublist)
+        self.ensub = 'en' in self.sublist
         self.uid = '%x' % int(info["media"]["track"][0]['UniqueID'])
 
 def bytesio(content: 'bytes', ext='mp4'):
