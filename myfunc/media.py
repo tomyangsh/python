@@ -9,21 +9,20 @@ from io import BytesIO
 
 class Video():
     def __init__(self, file):
-        info = json.loads(subprocess.Popen(["mediainfo", "--Output=JSON", file], stdout=subprocess.PIPE).communicate()[0].decode())
-        self.size = round(int(info["media"]["track"][0]['FileSize'])/(1024 ** 3), 2)
-        self.duration = int(float(info["media"]["track"][0]['Duration']))
-        self.width = int(info["media"]["track"][1]['Width'])
-        self.height = int(info["media"]["track"][1]['Height'])
-        self.fps = info["media"]["track"][1].get('FrameRate') or info["media"]["track"][1].get('FrameRate_Original')
-        self.vcode = info["media"]["track"][1]['Format']
-        self.vb = round(int(info["media"]["track"][1]['BitRate'])/1000)
-        self.acode = info["media"]["track"][2]['Format']
-        self.ab = round(int(info["media"]["track"][2]['BitRate'])/1000)
-        self.ac = int(info["media"]["track"][2]['Channels'])
-        self.sublist = tuple(track.get('Language') for track in info["media"]["track"] if track["@type"] == "Text")
-        self.zhsub = any(x in ('zh', 'zh-Hans', 'zh-Hant') for x in self.sublist)
-        self.ensub = 'en' in self.sublist
-        self.uid = '%x' % int(info["media"]["track"][0]['UniqueID'])
+        info = json.loads(subprocess.Popen(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', file], stdout=subprocess.PIPE).communicate()[0].decode())
+        self.size = round(int(info['format']['size'])/(1024 ** 3), 2)
+        self.duration = int(float(info['format']['duration']) / 60)
+        self.width = int(info['streams'][0]['width'])
+        self.height = int(info['streams'][0]['height'])
+        self.fps = round(eval(info['streams'][0]['r_frame_rate']), 2)
+        self.bitrate = int(int(info['format']['bit_rate']) / 1000)
+        self.vcode = info['streams'][0]['codec_name']
+        self.acode = info['streams'][1]['codec_name']
+        self.ab = int(int(info['streams'][1]['bit_rate']) / 1000)
+        self.ac = info['streams'][1]['channel_layout']
+        self.sublist = tuple(i['tags']['language'] for i in info['streams'] if i['codec_type'] == 'subtitle')
+        self.zhsub = 'chi' in self.sublist
+        self.ensub = 'eng' in self.sublist
 
 def bytesio(content: 'bytes', ext='mp4'):
     f = BytesIO(content)
@@ -31,7 +30,7 @@ def bytesio(content: 'bytes', ext='mp4'):
     return f
 
 def mediainfo(file_path):
-    mediainfo = subprocess.Popen(["mediainfo", file_path], stdout=subprocess.PIPE).communicate()[0].decode()
+    mediainfo = subprocess.Popen(['mediainfo', file_path], stdout=subprocess.PIPE).communicate()[0].decode()
     return mediainfo
 
 def ss(file, time: 'str'=None) -> 'bytes':
@@ -39,7 +38,7 @@ def ss(file, time: 'str'=None) -> 'bytes':
     return ss
 
 def upload(content: 'bytes'):
-    r = requests.post("https://api.imgbb.com/1/upload", data={'key': '314470a578e045760318fd032d9637f7'}, files={'image': content}).json()
+    r = requests.post('https://api.imgbb.com/1/upload', data={'key': '314470a578e045760318fd032d9637f7'}, files={'image': content}).json()
     return r['data']['url']
 
 def ytdl(url):
