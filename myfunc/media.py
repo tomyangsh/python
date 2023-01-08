@@ -10,6 +10,7 @@ from io import BytesIO
 class Video():
     def __init__(self, file):
         info = json.loads(subprocess.Popen(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', file], stdout=subprocess.PIPE).communicate()[0].decode())
+        self.title = info['format']['tags'].get('title')
         self.size = round(int(info['format']['size'])/(1024 ** 3), 2)
         self.duration = int(float(info['format']['duration']) / 60)
         self.width = int(info['streams'][0]['width'])
@@ -34,7 +35,7 @@ def mediainfo(file_path):
     return mediainfo
 
 def ss(file, time: 'str'=None) -> 'bytes':
-    ss = ffmpeg.input(file, ss=time or '1:00').output('pipe:', vcodec='png', format='image2', vframes=1).run_async(pipe_stdout=True, quiet=True).communicate()[0]
+    ss = ffmpeg.input(file, ss=time or '1:00').output('pipe:', vcodec='png', format='image2', vframes=1, vf='scale=w=iw*sar:h=ih').run_async(pipe_stdout=True, quiet=True).communicate()[0]
     return ss
 
 def upload(content: 'bytes'):
