@@ -43,6 +43,4 @@ def upload(content: 'bytes'):
     return r['data']['url']
 
 def ytdl(url):
-    info = YoutubeDL().extract_info(url, download=False)
-    url = [i['url'] for i in info['formats'] if not i.get('container') and i['ext'] == 'mp4'][-1]
-    return url
+    return YoutubeDL(params={'format': 'mp4', 'quiet': True}).extract_info(url, download=False)['url']
