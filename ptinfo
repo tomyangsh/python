@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-import os
 import subprocess
 import re
 import json
@@ -10,69 +9,115 @@ import requests
 import webbrowser
 import cn2an
 
+from pathlib import Path
+
 from tmdb import method, type
 from myfunc import media
 
 file_path = sys.argv[1]
-file_name = os.path.basename(file_path)
+p = Path(file_path)
+if not p.is_dir():
+    file_name = p.name
+    full_season = False
+else:
+    file_path = next(p.iterdir())
+    file_name = file_path.name
+    full_season = True
+
+if re.search('remux', file_name, re.I):
+    medium = 'remux'
+elif re.search('web', file_name, re.I):
+    medium = 'web'
+else:
+    medium = 'encode'
 
 mediainfo = media.mediainfo(file_path)
-zhsub = media.Video(file_path).zhsub
+v = media.Video(file_path)
 
 thumb = []
 
 try:
     for i in [3, 6, 9, 12]:
-        f = media.ss(file_path, f'{i}:00')
-        thumb.append(media.upload(f))
+        f = media.screenshot(file_path, f'{i}:00')
+        thumb.append(media.upload_image(f, 'sda1'))
     thumb = '[img]'+'[/img]\n[img]'.join(thumb)+'[/img]'
 except Exception as e:
     pass
 
+def get_detail(cat, id):
+    return requests.get(f"https://oracle.tomyangsh.pw/api/tmdb?cat={cat}&id={id}").json()
+
 parse = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name)
 query = re.sub('\.', ' ', parse.group(1))
-search = requests.get(f'https://oracle.tomyangsh.pw/ptinfo/api/search?query={query}').json()
+search = requests.get(f'https://oracle.tomyangsh.pw/api/tmdb?keyword={query}').json()
 if search:
-    print('\n'.join(f"{search.index(i)}. {i['cat']} {i['name']} {i.get('date')}" for i in search[:5]))
+    print('\n'.join(f"{search.index(i)}. {i['cat']} {i['zh_name']} {i['ori_name']} {i.get('date')}" for i in search[:5]))
     choice = int(input())
     if choice in range(0, 5):
-        choice = search[choice]
+        detail = search[choice]
     else:
-        choice = {'id': choice, 'cat': input('cat: ')}
+        detail = get_detail(input('cat: '), choice)
 else:
-    choice = {'id': input('id: '), 'cat': input('cat: ')}
-
-detail = requests.get('https://oracle.tomyangsh.pw/ptinfo/api/detail', params=choice).json()
+    detail = get_detail(input('cat: '), input('id: '))
 
 if detail['cat'] == 'movie':
-    des = f"""{detail['info']}
-{thumb}
+    name = detail['zh_names']
+    cast = '\n          '.join(f"{i['name']} 饰 {i['character']}" if i.get('character') else i['name'] for i in detail['cast'])
+    des = f"""[img]{detail['poster']}[/img]
+[size=3]
+[b]{detail['name']} {detail['ori_name']} ({detail['year']})[/b]
+导演   {detail['director']}
+类型   {detail['genres']}
+国家   {detail['country']}
+语言   {detail['lang']}
+上映   {detail['date']}
+片长   {detail['runtime']}分钟
+IMDb  https://www.imdb.com/title/{detail['imdb']}/
+演员   {cast}
+
+{detail['des']}
 
 [expand]
 {mediainfo}
-[/expand]"""
+[/expand]
 
-    dic = {'cat': '419', 'name': detail['zh_names'], 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
+{thumb}"""
 
-if detail['cat'] == 'tv':
+elif detail['cat'] == 'tv':
     parse_ep = re.findall('\d+', parse.group(2))
     season = cn2an.an2cn(parse_ep[0])
     ep = parse_ep[1].lstrip('0')
-    name = f"{detail['zh_names']} 第{season}季 第{ep}集"
+    name = f"{detail['zh_names']} 第{season}季"
+    if not full_season:
+        name += f" 第{ep}集"
     print('\n'.join(f"{detail['poster'].index(i)}. {i['name']}" for i in detail['poster']))
     choice = int(input())
     poster = detail['poster'][choice]['path']
+    cast = '\n          '.join(f"{i['name']} 饰 {i['character']}" if i.get('character') else i['name'] for i in detail['cast'])
     des = f"""[img]{poster}[/img]
-{detail['info']}
-{thumb}
+[size=3]
+[b]{detail['name']} {detail['ori_name']} ({detail['year']})[/b]
+主创   {detail['creator']}
+类型   {detail['genres']}
+国家   {detail['country']}
+语言   {detail['lang']}
+网络   {detail['network']}
+首播   {detail['date']}
+IMDb  https://www.imdb.com/title/{detail['imdb']}/
+演员   {cast}
+
+{detail['des']}
 
 [expand]
 {mediainfo}
-[/expand]"""
+[/expand]
 
-    dic = {'cat': '402', 'name': name, 'imdb': detail['imdb'], 'code': '1', 'res': '1', 'area': '2', 'des': des, 'zhsub': zhsub}
+{thumb}"""
 
-forminfo_id = requests.post('https://oracle.tomyangsh.pw/ptinfo/api/forminfo', json=dic).text
-forminfo_url = f"https://oracle.tomyangsh.pw/ptinfo/api/forminfo?id={forminfo_id}"
-webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
+dic = {'cat': detail['cat'], 'name': name, 'imdb': detail['imdb'], 'des': des, 'full_season': full_season, 'medium': medium}
+dic.update(v.__dict__)
 
+forminfo_id = requests.post('https://oracle.tomyangsh.pw/api/form', json=dic).text
+forminfo_url = f"https://oracle.tomyangsh.pw/api/form?id={forminfo_id}"
+#webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
+webbrowser.open('https://audiences.me/upload.php#info='+forminfo_url)
