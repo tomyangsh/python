@@ -66,6 +66,7 @@ if detail['cat'] == 'movie':
     des = f"""[img]{detail['poster']}[/img]
 [size=3]
 [b]{detail['name']} {detail['ori_name']} ({detail['year']})[/b]
+
 导演   {detail['director']}
 类型   {detail['genres']}
 国家   {detail['country']}
@@ -97,6 +98,7 @@ elif detail['cat'] == 'tv':
     des = f"""[img]{poster}[/img]
 [size=3]
 [b]{detail['name']} {detail['ori_name']} ({detail['year']})[/b]
+
 主创   {detail['creator']}
 类型   {detail['genres']}
 国家   {detail['country']}
