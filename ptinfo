@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-import subprocess
 import re
 import json
 import ffmpeg
@@ -39,7 +38,7 @@ thumb = []
 try:
     for i in [3, 6, 9, 12]:
         f = media.screenshot(file_path, f'{i}:00')
-        thumb.append(media.upload_image(f, 'sda1'))
+        thumb.append(media.upload_image(f, 'imgbb'))
     thumb = '[img]'+'[/img]\n[img]'.join(thumb)+'[/img]'
 except Exception as e:
     pass
