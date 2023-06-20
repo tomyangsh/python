@@ -44,11 +44,11 @@ except Exception as e:
     pass
 
 def get_detail(cat, id):
-    return requests.get(f"https://oracle.tomyangsh.pw/api/tmdb?cat={cat}&id={id}").json()
+    return requests.get(f"https://tomyangsh.pw/api/tmdb?cat={cat}&id={id}").json()
 
 parse = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name)
 query = re.sub('\.', ' ', parse.group(1))
-search = requests.get(f'https://oracle.tomyangsh.pw/api/tmdb?keyword={query}').json()
+search = requests.get(f'https://tomyangsh.pw/api/tmdb?keyword={query}').json()
 if search:
     print('\n'.join(f"{search.index(i)}. {i['cat']} {i['zh_name']} {i['ori_name']} {i.get('date')}" for i in search[:5]))
     choice = int(input())
@@ -118,7 +118,7 @@ IMDb  https://www.imdb.com/title/{detail['imdb']}/
 dic = {'cat': detail['cat'], 'name': name, 'imdb': detail['imdb'], 'des': des, 'full_season': full_season, 'medium': medium}
 dic.update(v.__dict__)
 
-forminfo_id = requests.post('https://oracle.tomyangsh.pw/api/form', json=dic).text
-forminfo_url = f"https://oracle.tomyangsh.pw/api/form?id={forminfo_id}"
+forminfo_id = requests.post('https://tomyangsh.pw/api/form', json=dic).text
+forminfo_url = f"https://tomyangsh.pw/api/form?id={forminfo_id}"
 #webbrowser.open('https://kp.m-team.cc/upload.php#info='+forminfo_url)
 webbrowser.open('https://audiences.me/upload.php#info='+forminfo_url)
