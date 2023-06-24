@@ -1,0 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import sys, hashlib
+
+username = sys.argv[1]
+passwd = hashlib.md5(username.encode().hex().encode()).hexdigest()
+print(passwd)
