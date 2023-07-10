@@ -1,16 +1,15 @@
 import subprocess
 import requests
-import ffmpeg
 import json
 
 from yt_dlp import YoutubeDL
 
 class Video():
     def __init__(self, file):
-        info = json.loads(subprocess.Popen(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', file], stdout=subprocess.PIPE).communicate()[0].decode())
+        info = json.loads(subprocess.run(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', file], capture_output=True).stdout.decode())
         self.title = info['format']['tags'].get('title')
         self.size = round(int(info['format']['size'])/(1024 ** 3), 2)
-        self.duration = int(float(info['format']['duration']) / 60)
+        self.duration = int(float(info['format']['duration']))
         self.width = int(info['streams'][0]['width'])
         self.height = int(info['streams'][0]['height'])
         self.fps = round(eval(info['streams'][0]['r_frame_rate']), 2)
@@ -24,12 +23,11 @@ class Video():
         self.ensub = 'eng' in self.sublist
 
 def mediainfo(file_path):
-    mediainfo = subprocess.Popen(['mediainfo', file_path], stdout=subprocess.PIPE).communicate()[0].decode()
+    mediainfo = subprocess.run(['mediainfo', file_path], capture_output=True).stdout.decode()
     return mediainfo
 
-def screenshot(file, time: 'str'=None) -> 'bytes':
-    ss = ffmpeg.input(file, ss=time or '1:00').output('pipe:', vcodec='png', format='image2', vframes=1, vf='scale=w=iw*sar:h=ih').run_async(pipe_stdout=True, quiet=True).communicate()[0]
-    return ss
+def screenshot(file, time: 'str'='1:00') -> 'bytes':
+    return subprocess.run(['ffmpeg', '-ss', time, '-i', file, '-c:v', 'png', '-f', 'image2', '-frames:v', '1', 'pipe:'], capture_output=True).stdout
 
 def upload_image(content: 'bytes', host='ccp'):
     if host == 'imgbb':
