@@ -5,8 +5,7 @@ import os
 import requests
 import re
 
-from myfunc import tg, media
-from tmdb import method
+from myfunc import tg, media, util
 
 def get_metadata(video_path):
     width, height, duration = 1920, 1080, 0
@@ -26,16 +25,18 @@ def progress(current, total):
 with tg.client() as app:
     video_path = sys.argv[1]
     video_name = os.path.basename(video_path)
-    try:
-        ep_no = re.search('\w\d\d\w\d\d', video_name).group().upper()
-        query = re.sub('\.', ' ', re.match('(\S+)\.\w\d\d\w\d\d', video_name).group(1))
-        res = method.search_tv(query)[0]
+    ep_no = re.search('\w\d\d\w\d\d', video_name).group().upper()
+    query = re.sub('\.', ' ', re.match('(.+?)\.((\d){4}\.)?\w\d\d\w\d\d', video_name).group(1))
+    res = requests.get(f'https://tomyangsh.pw/api/tmdb?keyword={query}').json()
+    if res:
+        res = res[0]
         name_chi = re.sub('：', '_', res.get('name'))
-        name_org = re.sub('：', '_', res.get('original_name'))
+        name_org = re.sub('：', '_', res.get('ori_name'))
+        thumbnail = util.bytesio(requests.get(res.get('backdrop')).content, 'jpg')
         caption = '#'+name_chi+' '+name_org+' '+ep_no
         print(caption)
-    except Exception as e:
+    else:
         caption = video_name
+        thumbnail = None
     meta = get_metadata(video_path)
-    thumbnail = media.bytesio(media.ss(video_path), 'png')
     app.send_video("me", video_path, caption=caption, thumb=thumbnail, **meta, progress=progress)
