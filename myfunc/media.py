@@ -29,7 +29,7 @@ def mediainfo(file_path):
 def screenshot(file, time: 'str'='1:00') -> 'bytes':
     return subprocess.run(['ffmpeg', '-ss', time, '-i', file, '-c:v', 'png', '-f', 'image2', '-frames:v', '1', 'pipe:'], capture_output=True).stdout
 
-def upload_image(content: 'bytes', host='ccp'):
+def upload_image(content: 'bytes', host='smms'):
     if host == 'imgbb':
         r = requests.post('https://api.imgbb.com/1/upload', data={'key': '314470a578e045760318fd032d9637f7'}, files={'image': content}).json()
         return r['data']['url']
@@ -47,7 +47,10 @@ def upload_image(content: 'bytes', host='ccp'):
         return f"https://telegra.ph{r[0]['src']}"
     elif host == 'ccp':
         r = requests.post("http://up.ccp.ovh/upload/", files={'image.png': content})
-    return r.text
+        return r.text
+    elif host == 'smms':
+        r = requests.post("https://sm.ms/api/v2/upload", headers={'Authorization': '5dv6AO7Lk2qVPeYZEsCb9XGWHolMzrUp'}, files={'smfile': content}).json()
+        return r['data']['url']
 
 def ytdl(url):
     return YoutubeDL(params={'format': 'mp4', 'quiet': True}).extract_info(url, download=False)['url']
