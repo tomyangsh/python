@@ -4,6 +4,8 @@ import json
 
 from yt_dlp import YoutubeDL
 
+from myfunc.util import get_apikey
+
 class Video():
     def __init__(self, file):
         info = json.loads(subprocess.run(['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', file], capture_output=True).stdout.decode())
@@ -31,7 +33,7 @@ def screenshot(file, time: 'str'='1:00') -> 'bytes':
 
 def upload_image(content: 'bytes', host='smms'):
     if host == 'imgbb':
-        r = requests.post('https://api.imgbb.com/1/upload', data={'key': '314470a578e045760318fd032d9637f7'}, files={'image': content}).json()
+        r = requests.post('https://api.imgbb.com/1/upload', data={'key': get_apikey('imgbb')}, files={'image': content}).json()
         return r['data']['url']
     elif host == 'catbox':
         r = requests.post('https://catbox.moe/user/api.php', data={'reqtype': 'fileupload'}, files={'fileToUpload': ('image.png', content)})
@@ -40,7 +42,7 @@ def upload_image(content: 'bytes', host='smms'):
         r = requests.post('https://p.sda1.dev/api/v1/upload_external_noform?filename=image.png', data=content).json()
         return r['data']['url']
     elif host == 'imgur':
-        r = requests.post('https://api.imgur.com/3/image', headers={"Authorization": "Client-ID dd32dd3c6aaa9a0"}, files={'image': content}).json()
+        r = requests.post('https://api.imgur.com/3/image', headers={"Authorization": f"Client-ID {get_apikey('imgur')}"}, files={'image': content}).json()
         return r["data"]["link"]
     elif host == 'telegraph':
         r = requests.post("https://telegra.ph/upload", files={'image': content}).json()
@@ -49,7 +51,7 @@ def upload_image(content: 'bytes', host='smms'):
         r = requests.post("http://up.ccp.ovh/upload/", files={'image.png': content})
         return r.text
     elif host == 'smms':
-        r = requests.post("https://sm.ms/api/v2/upload", headers={'Authorization': '5dv6AO7Lk2qVPeYZEsCb9XGWHolMzrUp'}, files={'smfile': content}).json()
+        r = requests.post("https://sm.ms/api/v2/upload", headers={'Authorization': get_apikey('smms')}, files={'smfile': content}).json()
         return r['data']['url']
 
 def ytdl(url):
