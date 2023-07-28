@@ -53,6 +53,9 @@ def upload_image(content: 'bytes', host='smms'):
     elif host == 'smms':
         r = requests.post("https://sm.ms/api/v2/upload", headers={'Authorization': get_apikey('smms')}, files={'smfile': content}).json()
         return r['data']['url']
+    elif host == 'pixhost':
+        r = requests.post("https://api.pixhost.to/images", files={'img': content}, data={'content_type': 0}).json()
+        return r['show_url']
 
 def ytdl(url):
     return YoutubeDL(params={'format': 'mp4', 'quiet': True}).extract_info(url, download=False)['url']
