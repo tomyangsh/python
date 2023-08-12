@@ -54,4 +54,7 @@ webbrowser.open('https://orpheus.network/upload.php#info='+forminfo_url)
 
 subprocess.run(['ops', sys.argv[1]])
 
-webbrowser.open(re.search('http\S+', nfo).group(0))
+weblink = re.search('http\S+', nfo).group(0)
+
+if weblink:
+    webbrowser.open(weblink)
