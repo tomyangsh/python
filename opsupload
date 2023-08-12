@@ -1,0 +1,57 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import sys
+import re
+import requests
+import webbrowser
+import subprocess
+
+from pathlib import Path
+
+p = Path(sys.argv[1])
+nfo = open(next(i for i in p.iterdir() if i.suffix == '.nfo')).read()
+
+artist = re.search('Artist\.*:\s*(.*?)\|', nfo).group(1).strip()
+title = re.search('Album\.*:\s*(.*?)\|', nfo).group(1).strip()
+genre = re.sub(' ', '.', re.search('Genre\.*:\s*(.*?)\|', nfo).group(1).strip().lower())
+label = re.search('Label\.*:\s*(.*?)\|', nfo).group(1).strip()
+year = re.search('Year\.*:\s*(.*?)\|', nfo).group(1).strip()
+catalogue_number = re.search('Cat\.No\.*:\s*(.*?)\|', nfo).group(1).strip()
+source = re.search('Source\.*:\s*(.*?)\|', nfo).group(1).strip()
+
+if re.search('WEB', source):
+    media = 'WEB'
+elif re.search('CD', source):
+    media = 'CD'
+
+if re.search('EP', source):
+    release_type = 5
+else:
+    release_type = 1
+
+if re.search('24bit', source):
+    bitrate = '24bit Lossless'
+else:
+    bitrate = 'Lossless'
+
+desc = 'Tracklist:\n\n'
+desc += '\n'.join(re.sub('(\d\d?:\d\d)', r'(\1)', i) for i in re.findall('0\d\.\s.+\d:\d\d', nfo))
+
+dic = {'artist': artist,
+       'title': title,
+       'genre': genre,
+       'label': label,
+       'year': year,
+       'catalogue_number': catalogue_number,
+       'media': media,
+       'release_type': release_type,
+       'bitrate': bitrate,
+       'desc': desc}
+
+forminfo_id = requests.post('https://tomyangsh.pw/api/form', json=dic).text
+forminfo_url = f"https://tomyangsh.pw/api/form?id={forminfo_id}"
+webbrowser.open('https://orpheus.network/upload.php#info='+forminfo_url)
+
+subprocess.run(['ops', sys.argv[1]])
+
+webbrowser.open(re.search('http\S+', nfo).group(0))
