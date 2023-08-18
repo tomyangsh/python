@@ -5,11 +5,12 @@ import re
 import requests
 import webbrowser
 import subprocess
+import os
 
 from pathlib import Path
 
 p = Path(sys.argv[1])
-nfo = open(next(i for i in p.iterdir() if i.suffix == '.nfo')).read()
+nfo = open(next(i for i in p.iterdir() if i.suffix == '.nfo'), errors='ignore').read()
 
 artist = re.search('Artist\.*:\s*(.*?)\|', nfo).group(1).strip()
 title = re.search('Album\.*:\s*(.*?)\|', nfo).group(1).strip()
@@ -52,9 +53,22 @@ forminfo_id = requests.post('https://tomyangsh.pw/api/form', json=dic).text
 forminfo_url = f"https://tomyangsh.pw/api/form?id={forminfo_id}"
 webbrowser.open('https://orpheus.network/upload.php#info='+forminfo_url)
 
-subprocess.run(['ops', sys.argv[1]])
+dir_parse = re.match('(\w+)-(\w+)', sys.argv[1])
+dir_new = f"{re.sub('_', ' ', dir_parse.group(1))} - {re.sub('_', ' ', dir_parse.group(2))} ({year}) [{media} FLAC]"
+os.mkdir(dir_new)
 
-weblink = re.search('http\S+', nfo).group(0)
+for i in p.iterdir():
+    if i.suffix == '.jpg' and media == 'WEB':
+        os.link(i, f"{dir_new}/cover.jpg")
+    elif i.suffix == '.flac':
+        filename_parse = re.match('(\d+)-\w+-(.+?)\.flac', i.name)
+        filename_new = f"{re.sub('_', ' ', filename_parse.group(1))}. {re.sub('_', ' ', filename_parse.group(2))}.flac"
+        os.link(i, f"{dir_new}/{filename_new}")
 
-if weblink:
-    webbrowser.open(weblink)
+subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', 'https://example.com/announce', dir_new])
+
+weblink_parse = re.search('http\S+', nfo)
+if weblink_parse:
+    webbrowser.open(weblink_parse.group(0))
+else:
+    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
