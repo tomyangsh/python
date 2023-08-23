@@ -1,0 +1,62 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import sys
+import re
+import os
+import json
+import subprocess
+import requests
+import browser_cookie3
+
+from pathlib import Path
+
+from myfunc import media
+
+from myfunc.util import tr_add_torrent, get_apikey
+
+p = Path(sys.argv[1])
+
+name_parse = re.match('(\w+)\.(\d\d\.\d\d\.\d\d|E\d+)\.(.+?)\.XXX', p.name)
+site = name_parse.group(1)
+date = f"{name_parse.group(2)}"
+title_list = name_parse.group(3).replace('.And', ',').split('.')
+print(title_list)
+title_list.insert(int(input('分隔符位置: ')), '-')
+actor_parse = re.match('([\w\s]+)?,?([\w\s]+)?,?([\w\s]+)?-', ' '.join(title_list))
+actor_list = [i.strip() for i in actor_parse.groups() if i]
+tag_list = [site] + actor_list
+tags = ','.join(tag_list)
+title = f"[{site}] {' '.join(title_list)} -- {date} [1080p]"
+
+mp4_file = next(i for i in p.iterdir() if i.suffix == '.mp4')
+filename_new = re.match('(.+?)MP4', p.name).group(1) + 'mp4'
+os.link(mp4_file, filename_new)
+
+thumb = []
+for i in [3, 6, 9, 12, 15, 18]:
+    try:
+        f = media.screenshot(mp4_file, f'{i}:00')
+        if len(f):
+            thumb.append(media.upload_image(f, 'fsm'))
+    except:
+        continue
+content = '<p><img src="'+'"><img src="'.join(thumb)+'"></p>'
+
+subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://creditracker.net/Announce?passkey={get_apikey('fsm_passkey')}", '-r', 'FSM', filename_new])
+torrent_name = filename_new + '.torrent'
+
+upload_form = {
+        'type': 7,
+        'title': title,
+        'tags': tags,
+        'content': content,
+        'torrentFile': open(torrent_name, 'rb')
+        }
+
+upload_res = requests.post('https://fsm.name/Torrents/newSubmit', headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0'}, cookies=browser_cookie3.firefox(domain_name='fsm.name'), data=upload_form, files={'torrentFile': open(torrent_name, 'rb')}).json()
+print(upload_res['msg'])
+
+if upload_res['success']:
+    torrent_file = Path(torrent_name)
+    tr_add_torrent(str(torrent_file.absolute()))
+    torrent_file.unlink()
