@@ -9,6 +9,11 @@ import os
 
 from pathlib import Path
 
+from mutagen.flac import FLAC
+
+from myfunc import media
+from myfunc.util import get_apikey, tr_add_torrent
+
 p = Path(sys.argv[1])
 nfo = open(next(i for i in p.iterdir() if i.suffix == '.nfo'), errors='ignore').read()
 
@@ -21,9 +26,11 @@ catalogue_number = re.search('Cat\.No\.*:\s*(.*?)\|', nfo).group(1).strip()
 source = re.search('Source\.*:\s*(.*?)\|', nfo).group(1).strip()
 
 if re.search('WEB', source):
-    media = 'WEB'
+    media_type = 'WEB'
 elif re.search('CD', source):
-    media = 'CD'
+    media_type = 'CD'
+    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
+    iamge = input('image: ')
 
 if re.search('EP', source):
     release_type = 5
@@ -38,37 +45,44 @@ else:
 desc = 'Tracklist:\n\n'
 desc += '\n'.join(re.sub('(\d\d?:\d\d)', r'(\1)', i) for i in re.findall('0\d\.\s.+\d:\d\d', nfo))
 
-dic = {'artist': artist,
-       'title': title,
-       'genre': genre,
-       'label': label,
-       'year': year,
-       'catalogue_number': catalogue_number,
-       'media': media,
-       'release_type': release_type,
-       'bitrate': bitrate,
-       'desc': desc}
-
-forminfo_id = requests.post('https://tomyangsh.pw/api/form', json=dic).text
-forminfo_url = f"https://tomyangsh.pw/api/form?id={forminfo_id}"
-webbrowser.open('https://orpheus.network/upload.php#info='+forminfo_url)
-
 dir_parse = re.match('(\w+)-(\w+)', sys.argv[1])
-dir_new = f"{re.sub('_', ' ', dir_parse.group(1))} - {re.sub('_', ' ', dir_parse.group(2))} ({year}) [{media} FLAC]"
+dir_new = f"{re.sub('_', ' ', dir_parse.group(1))} - {re.sub('_', ' ', dir_parse.group(2))} ({year}) [{media_type} FLAC]"
 os.mkdir(dir_new)
 
 for i in p.iterdir():
-    if i.suffix == '.jpg' and media == 'WEB':
+    if i.suffix == '.jpg' and media_type == 'WEB':
         os.link(i, f"{dir_new}/cover.jpg")
+        image = media.upload_image(open(i, 'rb'), 'imgur')
     elif i.suffix == '.flac':
-        filename_parse = re.match('(\d+)-\w+-(.+?)\.flac', i.name)
-        filename_new = f"{re.sub('_', ' ', filename_parse.group(1))}. {re.sub('_', ' ', filename_parse.group(2))}.flac"
+        song = FLAC(i)
+        song_title = song.tags.get('TITLE')[0]
+        song_tracknumber = song.tags.get('TRACKNUMBER')[0]
+        filename_new = f"{song_tracknumber}. {song_title}.flac"
         os.link(i, f"{dir_new}/{filename_new}")
 
-subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', 'https://example.com/announce', dir_new])
+subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://home.opsfet.ch/{get_apikey('ops_passkey')}/announce", '-r', 'OPS', dir_new])
+torrent_name = dir_new + '.torrent'
 
-weblink_parse = re.search('http\S+', nfo)
-if weblink_parse:
-    webbrowser.open(weblink_parse.group(0))
-else:
-    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
+upload_arguments = {
+            "type": 0,
+            "artists[0]": artist,
+            "importance[0]": 1,
+            "title": title,
+            "year": year,
+            "record_label": label,
+            "releasetype": release_type,
+            "media": media_type,
+            "format": 'FLAC',
+            "bitrate": bitrate,
+            "tags": genre,
+            "image": image,
+            "album_desc": desc
+        }
+
+upload_res = requests.post('https://orpheus.network/ajax.php?action=upload', headers={'Authorization': get_apikey('ops')}, data=upload_arguments, files={'file_input': open(torrent_name, 'rb')}).json()
+
+print(upload_res)
+if upload_res['status'] == 'success':
+    torrent_file = Path(torrent_name)
+    tr_add_torrent(str(torrent_file.absolute()))
+    torrent_file.unlink()
