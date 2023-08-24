@@ -29,8 +29,6 @@ if re.search('WEB', source):
     media_type = 'WEB'
 elif re.search('CD', source):
     media_type = 'CD'
-    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
-    iamge = input('image: ')
 
 if re.search('EP', source):
     release_type = 5
@@ -49,6 +47,8 @@ dir_parse = re.match('(\w+)-(\w+)', sys.argv[1])
 dir_new = f"{re.sub('_', ' ', dir_parse.group(1))} - {re.sub('_', ' ', dir_parse.group(2))} ({year}) [{media_type} FLAC]"
 os.mkdir(dir_new)
 
+image = ''
+
 for i in p.iterdir():
     if i.suffix == '.jpg' and media_type == 'WEB':
         os.link(i, f"{dir_new}/cover.jpg")
@@ -59,6 +59,10 @@ for i in p.iterdir():
         song_tracknumber = song.tags.get('TRACKNUMBER')[0]
         filename_new = f"{song_tracknumber}. {song_title}.flac"
         os.link(i, f"{dir_new}/{filename_new}")
+
+if not image:
+    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
+    image = input('image: ')
 
 subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://home.opsfet.ch/{get_apikey('ops_passkey')}/announce", '-r', 'OPS', dir_new])
 torrent_name = dir_new + '.torrent'
