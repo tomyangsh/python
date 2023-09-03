@@ -6,13 +6,19 @@ import os
 import json
 import subprocess
 import requests
-import browser_cookie3
 
 from pathlib import Path
 
 from myfunc import media
 
 from myfunc.util import tr_add_torrent, get_apikey
+
+s = requests.Session()
+login = s.post('https://fsm.name/Users/loginSubmit', data={'username': get_apikey('fsm_username'), 'password': get_apikey('fsm_passwd')})
+print(login.json())
+
+def upload_image(content: 'bytes'):
+    return s.post("https://fsm.name/PicUpload/upload", files={'file': ('image.png', content)}).json()['data']['url']
 
 p = Path(sys.argv[1])
 mp4_file = next(i for i in p.iterdir() if i.suffix == '.mp4')
@@ -51,15 +57,17 @@ else:
         try:
             f = media.screenshot(mp4_file, f'{i}:00')
             if len(f):
-                thumb.append(media.upload_image(f, 'fsm'))
+                thumb.append(upload_image(f))
         except:
             continue
     content = '<p><img src="'+'"><img src="'.join(thumb)+'"></p>'
 
-os.link(mp4_file, filename_new)
+if not Path(filename_new).is_file():
+    os.link(mp4_file, filename_new)
 
-subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://creditracker.net/Announce?passkey={get_apikey('fsm_passkey')}", '-r', 'FSM', filename_new])
 torrent_name = filename_new + '.torrent'
+if not Path(torrent_name).is_file():
+    subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://creditracker.net/Announce?passkey={get_apikey('fsm_passkey')}", '-r', 'FSM', filename_new])
 
 upload_form = {
         'type': upload_type,
@@ -69,8 +77,9 @@ upload_form = {
         'torrentFile': open(torrent_name, 'rb')
         }
 
-upload_res = requests.post('https://fsm.name/Torrents/newSubmit', headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0'}, cookies=browser_cookie3.firefox(domain_name='fsm.name'), data=upload_form, files={'torrentFile': open(torrent_name, 'rb')}).json()
+upload_res = s.post('https://fsm.name/Torrents/newSubmit', data=upload_form, files={'torrentFile': open(torrent_name, 'rb')}).json()
 print(upload_res['msg'])
+logout = s.post('https://fsm.name/Users/logout')
 
 if upload_res['success']:
     torrent_file = Path(torrent_name)
