@@ -57,9 +57,6 @@ def upload_image(content: 'bytes', host='smms'):
     elif host == 'pixhost':
         r = requests.post("https://api.pixhost.to/images", files={'img': content}, data={'content_type': 0}).json()
         return r['show_url']
-    elif host == 'fsm':
-        r = requests.post("https://fsm.name/PicUpload/upload", cookies=browser_cookie3.firefox(domain_name='fsm.name'), files={'file': content}).json()
-        return r['data']['url']
 
 def ytdl(url):
     return YoutubeDL(params={'format': 'mp4', 'quiet': True}).extract_info(url, download=False)['url']
