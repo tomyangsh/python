@@ -3,11 +3,11 @@
 import sys
 import re
 import requests
-import webbrowser
 import subprocess
 import os
 
 from pathlib import Path
+from datetime import timedelta
 
 from mutagen.flac import FLAC
 
@@ -15,42 +15,36 @@ from myfunc import media
 from myfunc.util import get_apikey, tr_add_torrent
 
 p = Path(sys.argv[1])
-nfo = open(next(i for i in p.iterdir() if i.suffix == '.nfo'), errors='ignore').read()
+nfo = next(p.glob('*.nfo')).read_text(errors='ignore')
+flac = FLAC(next(p.glob('*.flac')))
 
-artist = re.search('Artist\.*:\s*(.*?)\|', nfo).group(1).strip()
-title = re.search('Album\.*:\s*(.*?)\|', nfo).group(1).strip()
-genre = re.sub(' ', '.', re.search('Genre\.*:\s*(.*?)\|', nfo).group(1).strip().lower())
-label = re.search('Label\.*:\s*(.*?)\|', nfo).group(1).strip()
-year = re.search('Year\.*:\s*(.*?)\|', nfo).group(1).strip()
-catalogue_number = re.search('Cat\.No\.*:\s*(.*?)\|', nfo).group(1).strip()
-source = re.search('Source\.*:\s*(.*?)\|', nfo).group(1).strip()
+artist = flac.get('ARTIST')[0]
+title = flac.get('ALBUM')[0]
+genre = re.sub(' ', '.', flac.get('GENRE')[0].lower())
+year = flac.get('DATE')[0]
+label = re.search('label[^\w\n]+([\w ]*)', nfo, re.I).group(1).strip()
 
-if re.search('WEB', source):
-    media_type = 'WEB'
-elif re.search('CD', source):
-    media_type = 'CD'
+media_type = 'WEB'
 
-if re.search('EP', source):
+if re.search('EP', p.name):
     release_type = 5
 else:
     release_type = 1
 
-if re.search('24bit', source):
+if re.search('24BIT', p.name):
     bitrate = '24bit Lossless'
 else:
     bitrate = 'Lossless'
 
 desc = 'Tracklist:\n\n'
-desc += '\n'.join(re.sub('(\d\d?:\d\d)', r'(\1)', i) for i in re.findall('0\d\.\s.+\d:\d\d', nfo))
 
-dir_parse = re.match('(\w+)-(\w+)', sys.argv[1])
-dir_new = f"{re.sub('_', ' ', dir_parse.group(1))} - {re.sub('_', ' ', dir_parse.group(2))} ({year}) [{media_type} FLAC]"
+dir_new = f"{artist} - {title} ({year}) [WEB FLAC]"
 os.mkdir(dir_new)
 
 image = ''
 
-for i in p.iterdir():
-    if i.suffix == '.jpg' and media_type == 'WEB':
+for i in sorted(p.iterdir()):
+    if i.suffix == '.jpg':
         os.link(i, f"{dir_new}/cover.jpg")
         image = media.upload_image(open(i, 'rb'), 'imgur')
     elif i.suffix == '.flac':
@@ -59,9 +53,9 @@ for i in p.iterdir():
         song_tracknumber = song.tags.get('TRACKNUMBER')[0]
         filename_new = f"{song_tracknumber}. {song_title}.flac"
         os.link(i, f"{dir_new}/{filename_new}")
+        desc += f"{song.get('TRACKNUMBER')[0].zfill(2)}. {song.get('TITLE')[0]} ({str(timedelta(seconds=round(song.info.length)))[-5:]})\n"
 
 if not image:
-    webbrowser.open(f"https://www.google.com/search?q={artist} {title}")
     image = input('image: ')
 
 subprocess.run(['transmission-create', '-p', '-s', '4096', '-t', f"https://home.opsfet.ch/{get_apikey('ops_passkey')}/announce", '-r', 'OPS', dir_new])
