@@ -46,7 +46,7 @@ except Exception as e:
 def get_detail(cat, id):
     return requests.get(f"https://tomyangsh.pw/api/tmdb?cat={cat}&id={id}").json()
 
-parse = re.match('(.+)\.((\d){4}\.|(\w\d\d){2})', file_name)
+parse = re.match('(.+?)\.(\d\d\d\d|S\d\d)', p.name)
 query = re.sub('\.', ' ', parse.group(1))
 search = requests.get(f'https://tomyangsh.pw/api/tmdb?keyword={query}').json()
 if search:
