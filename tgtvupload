@@ -21,7 +21,9 @@ def get_metadata(file):
     return dict(height=height, width=width, duration=duration)
 
 def progress(current, total):
-    sys.stdout.write(f"\r{current * 100 / total:.1f}%")
+    percentage = f"{current * 100 / total:.1f}%"
+    bar = '#' * int(current / total * 100)
+    sys.stdout.write(f"\r{bar.ljust(100)}{percentage}")
     sys.stdout.flush()
 
 def encode(file):
