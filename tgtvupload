@@ -39,7 +39,7 @@ def upload(file):
     with tg.client() as app:
         video_name = file.stem
         ep_no = re.search('\w\d\d\w\d\d', video_name).group().upper()
-        query = re.sub('\.', ' ', re.match('(.+?)\.((\d){4}\.)?\w\d\d\w\d\d', video_name).group(1))
+        query = re.sub('\.', ' ', re.match('([\w\.]+?)\.(\d{4}\.)?\w\d\d\w\d\d', video_name).group(1))
         res = requests.get(f'https://tomyangsh.pw/api/tmdb?keyword={query}').json()
         if res:
             res = res[0]
